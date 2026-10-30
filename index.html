@@ -98,6 +98,8 @@ h2.sec { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; colo
 .cell .s { font-size: 12.5px; color: var(--muted); }
 .cell.owe .v { color: var(--amber); }
 .cell.ok .v { color: var(--accent); }
+button.cell { text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.flag.bad { color: var(--red, #d9534f); }
 .facts { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { font-size: 13px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 5px 11px; }
 .chip b { color: var(--fg); font-weight: 600; }
@@ -267,6 +269,7 @@ tr:last-child td { border-bottom: 0; }
 .ptbl input.pct { width: 54px; font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-align: right; }
 .ptbl tfoot td { font-weight: 700; border-top: 2px solid var(--line); border-bottom: 0; background: var(--bg); }
 .ptbl .mine { color: var(--accent); font-weight: 600; }
+.ptbl td.late { color: var(--red); font-weight: 600; }
 .ptbl .neg { color: var(--red); }
 #pTableBox { display: none; }
 .kbd { font-size: 12px; color: var(--muted); }
@@ -426,15 +429,18 @@ tr:last-child td { border-bottom: 0; }
       <div class="mname" id="dName">—</div>
       <button id="dNext" aria-label="Следующий месяц">›</button>
     </div>
+    <h2 class="sec">Дизайн</h2>
     <div class="ops" id="dList"></div>
+    <h2 class="sec">3D-сканирование</h2>
+    <div class="ops" id="dScan"></div>
     <div class="card"><h3>За всё время</h3><div class="tbl-wrap"><table id="dAll"></table></div></div>
-    <div class="status">Если дизайнер — ты (имя «Асет»), оплата за дизайн добавляется к твоему доходу.</div>
+    <div class="status">Если дизайнер — ты (имя «Асет»), оплата за дизайн добавляется к твоему доходу. За скан половина идёт Тимуру, половина — тому, кто сканировал.</div>
   </section>
 
   <!-- 3D: РАСЧЁТЫ -->
   <section id="v-p-settle" class="view" hidden style="flex-direction:column;gap:18px">
     <div class="grid2" id="psKpi"></div>
-    <div class="status" style="text-align:left">Расчёт с Тимуром идёт по факту выполнения: когда заказ передан клиенту, твоя доля переходит в «к выплате». Доход при этом остаётся в месяце, когда заказ был принят.</div>
+    <div class="status" style="text-align:left">Тимур рассчитывается за месяц целиком и только когда все заказы этого месяца переданы клиентам (частями не платит). Доход считается в месяце, когда заказ был принят.</div>
     <div class="ops" id="psMonths"></div>
     <h2 class="sec">Ждут оплаты клиента</h2>
     <div class="ops" id="psClients"></div>
@@ -455,7 +461,7 @@ tr:last-child td { border-bottom: 0; }
   <nav aria-label="3D-печать" id="navPrint" hidden>
     <button data-v="p-orders"><svg viewBox="0 0 24 24"><path d="M6 3h12l2 4H4z"/><rect x="4" y="7" width="16" height="9" rx="1"/><path d="M9 16v5h6v-5"/></svg>Заказы</button>
     <button data-v="p-stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Статистика</button>
-    <button data-v="p-des"><svg viewBox="0 0 24 24"><path d="M3 21l3-1 11-11-2-2L4 18z"/><path d="M14 6l2-2 4 4-2 2"/></svg>Дизайнеры</button>
+    <button data-v="p-des"><svg viewBox="0 0 24 24"><path d="M3 21l3-1 11-11-2-2L4 18z"/><path d="M14 6l2-2 4 4-2 2"/></svg>Дизайн и скан</button>
     <button data-v="p-settle"><svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Расчёты</button>
   </nav>
 </div>
@@ -528,12 +534,20 @@ tr:last-child td { border-bottom: 0; }
       <div class="field"><label>Валюта</label><div class="seg2" id="oCur"><button type="button" data-c="₽">₽ рубли</button><button type="button" data-c="₸">₸ тенге</button></div></div>
       <div class="field" id="oRateF"><label for="oRate">Курс ₽→₸</label><input id="oRate" inputmode="decimal"></div>
     </div>
-    <div class="calc" id="oCalc"></div>
-    <div class="grp">Ещё</div>
+    <div class="grp">3D-сканирование</div>
     <div class="row2">
-      <div class="field"><label for="oFin">Дата завершения</label><input id="oFin" type="date"></div>
-      <div class="field" style="justify-content:flex-end"><label class="check"><input type="checkbox" id="oPaid"> Тимур со мной рассчитался</label></div>
+      <div class="field"><label for="oScan">Сканирование, ₸ (отдельно от цены)</label><input id="oScan" inputmode="decimal" placeholder="0 — не было"></div>
+      <div class="field"><label for="oScanner">Кто сканировал</label><input id="oScanner" list="oScanners" placeholder="Асет / …"></div>
     </div>
+    <div class="status" style="text-align:left;margin-top:-6px">Скан клиент оплачивает отдельно, сверх цены заказа. Деньги за скан делятся 50/50: половина Тимуру, половина тому, кто сканировал.</div>
+    <div class="calc" id="oCalc"></div>
+    <div class="grp">Сроки</div>
+    <div class="row2">
+      <div class="field"><label for="oPlan">Плановая дата</label><input id="oPlan" type="date"></div>
+      <div class="field"><label for="oFact">Передан клиенту (факт)</label><input id="oFact" type="date"></div>
+    </div>
+    <div class="grp">Ещё</div>
+    <div class="field"><label class="check"><input type="checkbox" id="oPaid"> Тимур со мной рассчитался</label></div>
     <div class="field"><label for="oNote">Примечание</label><input id="oNote" placeholder="Необязательно"></div>
     <div class="err" id="oErr" hidden></div>
     <div class="row2">
@@ -542,7 +556,7 @@ tr:last-child td { border-bottom: 0; }
     </div>
   </form>
 </div>
-<datalist id="oClients"></datalist><datalist id="oDesigners"></datalist>
+<datalist id="oClients"></datalist><datalist id="oDesigners"></datalist><datalist id="oScanners"></datalist>
 
 <div class="sheet-bg" id="goalBg" hidden>
   <form class="sheet" id="goalForm" autocomplete="off">
@@ -561,6 +575,7 @@ const SERVER = 'Google Sheets';
 const RANGE = "'Операции'!A1:M";
 const MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
 const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MNAMES_S = k => { const [y, m] = k.split('-'); const n = MONTHS[+m - 1]; return n[0].toUpperCase() + n.slice(1) + (+y !== new Date().getFullYear() ? ' ' + y : ''); };
 const MSHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const COACHES = ['Бектас Ж.', 'Айдар'];
@@ -1072,17 +1087,20 @@ $('addForm').addEventListener('submit', async e => {
 });
 
 /* =====================  РАЗДЕЛЫ И 3D-ПЕЧАТЬ  ===================== */
-const RANGE3D = "'3D-заказы'!A1:T";
-const C3 = ['ID', '№', 'Дата заказа', 'Месяц', 'Дата завершения', 'Клиент', 'Описание', 'Статус', 'Цена заказа, ₸', 'Предоплата, ₸',
-  'Пластик, г (части через +)', 'Цена пластика, ₸/г', 'Дизайнер', 'Оплата дизайнеру', 'Валюта', 'Курс ₽→₸', 'Доля Асета, %', 'Рассчитались', 'Примечание', 'Источник'];
+const RANGE3D = "'3D-заказы'!A1:W";
+const C3 = ['ID', '№', 'Дата заказа', 'Месяц', 'Плановая дата', 'Клиент', 'Описание', 'Статус', 'Цена заказа, ₸', 'Предоплата, ₸',
+  'Пластик, г (части через +)', 'Цена пластика, ₸/г', 'Дизайнер', 'Оплата дизайнеру', 'Валюта', 'Курс ₽→₸', 'Доля Асета, %', 'Рассчитались', 'Примечание', 'Источник',
+  'Передан клиенту (факт)', 'Сканирование, ₸', 'Сканировал'];
 const STATUSES = [
   ['На согласовании', 's-talk'], ['Моделируется', 's-model'], ['В очереди', 's-queue'], ['Печатается', 's-print'], ['Постобработка', 's-post'],
   ['Готов', 's-ready'], ['Передан клиенту', 's-done'], ['Тишина', 's-quiet'], ['Возврат', 's-void'], ['Отменён', 's-void']];
 const ST_CLS = Object.fromEntries(STATUSES);
 const ACTIVE = ['На согласовании', 'Моделируется', 'В очереди', 'Печатается', 'Постобработка'];
-const DONE = ['Готов', 'Передан клиенту'];
+const DONE = ['Передан клиенту'];
 const VOID = ['Возврат', 'Отменён'];
-const ME = /^асет/i;
+const BLOCK = [...ACTIVE, 'Готов'];   // пока такие заказы есть, месяц с Тимуром не закрыть
+const ME = /^асет/i, TIMUR = /^тимур/i;
+const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 let orders = [], loaded3d = false, pMonth = null, pFilter = 'all', ppPeriod = '12', dMonth = null, aMonth = null, editing = null, ordCur = '₽';
 
@@ -1092,7 +1110,8 @@ function ingest3d(values) {
   const ix = Object.fromEntries(C3.map(n => [n, head.indexOf(n)]));
   const g = (r, n) => ix[n] >= 0 ? String(r[ix[n]] ?? '').trim() : '';
   orders = values.slice(1).map((r, i) => {
-    const o = { row: i + 2, raw: r, id: g(r, 'ID'), no: num(g(r, '№')), date: parseDate(g(r, 'Дата заказа')), fin: parseDate(g(r, 'Дата завершения')),
+    const o = { row: i + 2, raw: r, id: g(r, 'ID'), no: num(g(r, '№')), date: parseDate(g(r, 'Дата заказа')), plan: parseDate(g(r, 'Плановая дата')),
+      fact: parseDate(g(r, 'Передан клиенту (факт)')), scan: num(g(r, 'Сканирование, ₸')), scanner: g(r, 'Сканировал'),
       client: g(r, 'Клиент'), desc: g(r, 'Описание'), status: g(r, 'Статус') || 'На согласовании',
       price: g(r, 'Цена заказа, ₸') === '' ? null : num(g(r, 'Цена заказа, ₸')), pre: num(g(r, 'Предоплата, ₸')),
       parts: g(r, 'Пластик, г (части через +)').replace(/^'/, '').split('+').map(x => num(x)).filter(x => x > 0),
@@ -1111,20 +1130,38 @@ function calc3d(o) {
   o.material = o.grams * o.plPrice;
   o.desT = o.desPay * (o.cur === '₸' ? 1 : o.rate);
   o.isMeDes = ME.test(o.des);
-  o.net = (o.price || 0) - o.desT - o.material;
+  o.scan = o.scan || 0;
+  o.isMeScan = !!o.scan && ME.test(o.scanner || '');
+  o.scanHalf = o.scan / 2;
+  o.net = (o.price || 0) - o.desT - o.material;   // скан оплачивается отдельно, сверх цены
   o.myShare = o.net * o.share / 100;
-  o.mine = o.myShare + (o.isMeDes ? o.desT : 0);
-  o.partner = o.net - o.myShare;
+  o.mine = o.myShare + (o.isMeDes ? o.desT : 0) + (o.isMeScan ? o.scanHalf : 0);
+  o.partner = o.net - o.myShare + o.scanHalf + (TIMUR.test(o.scanner || '') ? o.scanHalf : 0);
   o.void = VOID.includes(o.status);
   o.done = DONE.includes(o.status);
-  o.handed = o.status === 'Передан клиенту';
+  o.handed = o.done;
+  o.ready = o.status === 'Готов';
+  o.open = BLOCK.includes(o.status);
+  const t0 = today0();
+  o.overdue = o.open && !!o.plan && o.plan < t0;
+  o.dueSoon = o.open && !!o.plan && !o.overdue && (o.plan - t0) <= 2 * 864e5;
+  o.late = o.handed && o.plan && o.fact && o.fact > o.plan;
   o.counts = !o.void && o.price != null;
-  o.clientOwes = o.price != null && !o.void ? Math.max(o.price - o.pre, 0) : 0;
+  o.clientOwes = o.price != null && !o.void ? Math.max(o.price + (o.scan || 0) - o.pre, 0) : 0;
   return o;
 }
 const p3 = () => orders;
 function months3d() { const s = new Set(p3().map(o => o.month)); s.add(mk(new Date())); return [...s].sort(); }
 const mine3d = list => sum(list.filter(o => o.counts), o => o.mine);
+// Тимур рассчитывается за месяц целиком, когда все заказы месяца переданы клиентам
+function settle3d(m) {
+  const l = p3().filter(o => o.month === m && !o.void);
+  const open = l.filter(o => o.open), owed = l.filter(o => o.counts && o.handed && !o.paid);
+  return { m, open, owed, sum: sum(owed, o => o.mine), wait: sum(l.filter(o => o.counts && o.open), o => o.mine), payable: !open.length && owed.length > 0 };
+}
+const settleMonths3d = () => months3d().map(settle3d).filter(s => s.owed.length || s.open.length);
+// тренерство: долг по месяцам (после сверки прошлые месяцы закрыты)
+function coachOwed() { return monthList().map(m => { const rs = mine().filter(r => r.month === m); return { m, v: sum(rs, r => r.acc) - sum(rs, r => r.rec) }; }).filter(x => Math.abs(x.v) >= 1); }
 
 /* ---------- ОБЩЕЕ ---------- */
 function allMonths() { return [...new Set([...monthList(), ...months3d()])].sort(); }
@@ -1139,16 +1176,23 @@ function renderAll() {
   const cAcc = sum(cRows, r => r.acc), cOwe = Math.max(cAcc - sum(cRows, r => r.rec), 0);
   const pList = p3().filter(o => o.month === aMonth);
   const pMine = mine3d(pList), pDone = mine3d(pList.filter(o => o.done));
-  const pOweAll = sum(p3().filter(o => o.counts && o.handed && !o.paid), o => o.mine);
-  const cOweAll = sum(monthList().map(m => { const rs = mine().filter(r => r.month === m); return Math.max(sum(rs, r => r.acc) - sum(rs, r => r.rec), 0); }), x => x);
+  const co = coachOwed(), coSum = sum(co, x => x.v);
+  const st = settleMonths3d(), pay = st.filter(s => s.payable), waitM = st.filter(s => !s.payable);
+  const tim = sum(pay, s => s.sum), timWait = sum(waitM, s => s.sum + s.wait);
+  const readyN = p3().filter(o => o.ready).length, overN = p3().filter(o => o.overdue).length;
   const total = cAcc + pMine;
   $('aTotal').innerHTML = money(total) + '<small>₸</small>';
   const goal = num(store.get('goal'));
   $('aGoalBox').hidden = !goal;
   if (goal) { const p = Math.max(0, Math.min(1, total / goal)); $('aGoalFill').style.width = (p * 100).toFixed(1) + '%';
     $('aGoalL').textContent = 'Цель ' + money(goal) + ' ₸ · ' + Math.round(p * 100) + '%'; $('aGoalR').textContent = total >= goal ? 'выполнена' : 'осталось ' + money(goal - total) + ' ₸'; }
-  $('aKpi').innerHTML = `<div class="cell ${cOweAll + pOweAll < 1 ? 'ok' : 'owe'}"><span class="label">Мне должны</span><span class="v num">${money(cOweAll + pOweAll)} ₸</span><span class="s">за все месяцы</span></div>
-    <div class="cell"><span class="label">3D в работе</span><span class="v num">${money(pMine - pDone)} ₸</span><span class="s">ещё не выполнено</span></div>`;
+  const mNames = l => l.map(x => MNAMES_S(x.m)).join(', ');
+  $('aKpi').innerHTML = `<button class="cell ${coSum < 1 ? 'ok' : 'owe'}" id="aOweC"><span class="label">Бектас Ж. должен</span><span class="v num">${money(Math.abs(coSum))} ₸</span><span class="s">${coSum < 1 ? (coSum <= -1 ? 'переплата' : 'всё получено') : 'тренерство · ' + mNames(co.filter(x => x.v > 0))}</span></button>
+    <button class="cell ${tim < 1 ? '' : 'owe'}" id="aOweP"><span class="label">Тимур должен</span><span class="v num">${money(tim)} ₸</span><span class="s">${tim >= 1 ? '3D · ' + mNames(pay) : timWait >= 1 ? 'пока нечего: не закрыт' + (waitM.length > 1 ? 'ы ' : ' ') + mNames(waitM) : 'всё рассчитано'}</span></button>
+    <div class="cell"><span class="label">3D ждёт закрытия месяца</span><span class="v num">${money(timWait)} ₸</span><span class="s">${waitM.length ? waitM.map(s => MNAMES_S(s.m) + ': не передано ' + s.open.length).join(' · ') : 'нет'}</span></div>
+    <div class="cell ${overN ? 'owe' : ''}"><span class="label">Готовы, ждут выдачи</span><span class="v num">${readyN}</span><span class="s">${overN ? overN + ' заказа просрочено' : 'просроченных нет'}</span></div>`;
+  $('aOweC').onclick = () => go('settle');
+  $('aOweP').onclick = () => go('p-settle');
   $('aCoach').innerHTML = `<span class="t">Тренерство</span><span class="v num">${money(cAcc)} ₸</span><span class="m"><span>${cRows.filter(r => r.c === 'pay').length} оплат</span><span>${cOwe ? 'должны ' + money(cOwe) + ' ₸' : 'всё получено'}</span></span>`;
   $('aPrint').innerHTML = `<span class="t">3D-печать</span><span class="v num">${money(pMine)} ₸</span><span class="m"><span>${pList.filter(o => !o.void).length} заказов</span><span>выполнено на ${money(pDone)} ₸</span></span>`;
   const show = ms.slice(-12);
@@ -1178,7 +1222,16 @@ $('aCoach').onclick = () => { month = aMonth; go('home'); };
 $('aPrint').onclick = () => { pMonth = aMonth; go('p-orders'); };
 
 /* ---------- 3D: ЗАКАЗЫ ---------- */
-const FILTERS = [['all', 'Все'], ['active', 'В работе'], ['done', 'Готовы'], ['unpaid', 'Клиент не доплатил'], ['quiet', 'Тишина / возврат']];
+const FILTERS = [['all', 'Все'], ['active', 'В работе'], ['late', 'Просрочены'], ['ready', 'Готов, не передан'], ['done', 'Переданы'], ['unpaid', 'Клиент не доплатил'], ['quiet', 'Тишина / возврат']];
+function applyFilter(show) {
+  if (pFilter === 'active') return show.filter(o => ACTIVE.includes(o.status));
+  if (pFilter === 'late') return show.filter(o => o.overdue);
+  if (pFilter === 'ready') return show.filter(o => o.ready);
+  if (pFilter === 'done') return show.filter(o => o.done);
+  if (pFilter === 'unpaid') return show.filter(o => o.clientOwes > 0 && !o.void);
+  if (pFilter === 'quiet') return show.filter(o => o.void || o.status === 'Тишина');
+  return show;
+}
 function renderOrders() {
   const ms = months3d(), now = mk(new Date());
   if (!pMonth || !ms.includes(pMonth)) pMonth = ms.includes(now) ? now : ms[ms.length - 1];
@@ -1191,19 +1244,18 @@ function renderOrders() {
   const list = p3().filter(o => o.month === pMonth);
   const m = mine3d(list), done = mine3d(list.filter(o => o.done)), act = list.filter(o => ACTIVE.includes(o.status));
   $('pMine').innerHTML = money(m) + '<small>₸</small>';
-  const grams = sum(list, o => o.grams), revenue = sum(list.filter(o => o.counts), o => o.price);
+  const grams = sum(list, o => o.grams), revenue = sum(list.filter(o => o.counts), o => o.price + o.scan);
   $('pKpi').innerHTML = [
-    ['Выполнено', money(done) + ' ₸', list.filter(o => o.done).length + ' заказов'],
-    ['В работе', money(m - done) + ' ₸', act.length + ' заказов'],
+    ['Передано клиентам', money(done) + ' ₸', list.filter(o => o.done).length + ' заказов'],
+    ['Готово, не передано', money(mine3d(list.filter(o => o.ready))) + ' ₸', list.filter(o => o.ready).length + ' заказов'],
+    ['В работе', money(mine3d(act)) + ' ₸', act.length + ' заказов' + (list.some(o => o.overdue) ? ' · ' + list.filter(o => o.overdue).length + ' просроч.' : '')],
+    ['С Тимуром', (() => { const s = settle3d(pMonth); return s.payable ? money(s.sum) + ' ₸' : s.owed.length ? 'ждёт' : '—'; })(), (() => { const s = settle3d(pMonth); return s.payable ? 'можно закрыть месяц' : s.open.length ? 'не передано ещё ' + s.open.length : s.owed.length ? '' : 'рассчитались'; })()],
     ['Выручка заказов', money(revenue) + ' ₸', 'всего по месяцу'],
     ['Пластик', (grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸']
   ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   const q = kidKey($('pSearch').value || '');
   let show = q ? p3().filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no).includes(q)) : list;
-  if (pFilter === 'active') show = show.filter(o => ACTIVE.includes(o.status));
-  if (pFilter === 'done') show = show.filter(o => o.done);
-  if (pFilter === 'unpaid') show = show.filter(o => o.clientOwes > 0 && !o.void);
-  if (pFilter === 'quiet') show = show.filter(o => o.void || o.status === 'Тишина');
+  show = applyFilter(show);
   show = [...show].sort((a, b) => (b.date || 0) - (a.date || 0) || b.no - a.no);
   $('pList').innerHTML = show.length ? show.map(ordLine).join('') : `<div class="empty" style="border:0">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+», чтобы добавить.'}</div>`;
   $('pList').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
@@ -1215,17 +1267,15 @@ const isWide = () => window.matchMedia('(min-width: 1000px)').matches;
 let tSort = { k: 'date', dir: -1 };
 const TCOLS = [
   ['no', '№', o => o.no, 'r'], ['date', 'Дата', o => o.date ? o.date.getTime() : 0], ['client', 'Клиент', o => kidKey(o.client)], ['desc', 'Описание', o => kidKey(o.desc)],
-  ['status', 'Статус', o => STATUSES.findIndex(x => x[0] === o.status)], ['price', 'Цена', o => o.price || 0, 'r'], ['owes', 'Клиент должен', o => o.clientOwes, 'r'],
-  ['grams', 'Пластик, г', o => o.grams, 'r'], ['des', 'Дизайн', o => o.desT, 'r'], ['share', 'Доля', o => o.share, 'r'],
+  ['status', 'Статус', o => STATUSES.findIndex(x => x[0] === o.status)], ['plan', 'Срок', o => o.plan ? o.plan.getTime() : 9e15], ['fact', 'Передан', o => o.fact ? o.fact.getTime() : 0],
+  ['price', 'Цена', o => o.price || 0, 'r'], ['owes', 'Клиент должен', o => o.clientOwes, 'r'],
+  ['grams', 'Пластик, г', o => o.grams, 'r'], ['des', 'Дизайн', o => o.desT, 'r'], ['scan', 'Скан', o => o.scan, 'r'], ['share', 'Доля', o => o.share, 'r'],
   ['mine', 'Мне', o => o.counts ? o.mine : -1e12, 'r'], ['partner', 'Тимуру', o => o.counts ? o.partner : 0, 'r'], ['paid', 'Рассч.', o => o.paid ? 1 : 0]];
 function renderTable() {
   const q = kidKey($('pSearch2').value || '');
   let show = $('pAllMonths').checked || q ? p3() : p3().filter(o => o.month === pMonth);
   if (q) show = show.filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no + ' ' + o.des).includes(q));
-  if (pFilter === 'active') show = show.filter(o => ACTIVE.includes(o.status));
-  if (pFilter === 'done') show = show.filter(o => o.done);
-  if (pFilter === 'unpaid') show = show.filter(o => o.clientOwes > 0 && !o.void);
-  if (pFilter === 'quiet') show = show.filter(o => o.void || o.status === 'Тишина');
+  show = applyFilter(show);
   const col = TCOLS.find(c => c[0] === tSort.k) || TCOLS[1];
   show = [...show].sort((a, b) => { const x = col[2](a), y = col[2](b); return (x > y ? 1 : x < y ? -1 : 0) * tSort.dir || b.no - a.no; });
   const head = '<thead><tr>' + TCOLS.map(c => `<th data-k="${c[0]}" class="${c[3] || ''} ${c[0] === tSort.k ? 'sorted' : ''}">${c[1]}${c[0] === tSort.k ? (tSort.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('') + '</tr></thead>';
@@ -1234,16 +1284,19 @@ function renderTable() {
     <td class="r">${o.no || ''}</td><td>${o.date ? o.date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: $('pAllMonths').checked || q ? '2-digit' : undefined }) : ''}</td>
     <td class="cl">${esc(o.client || '—')}</td><td class="desc"><div>${esc(o.desc)}</div></td>
     <td><select data-act="status" aria-label="Статус">${STATUSES.map(([s2]) => `<option${s2 === o.status ? ' selected' : ''}>${s2}</option>`).join('')}</select></td>
+    <td class="${o.overdue ? 'late' : ''}">${o.plan ? o.plan.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''}</td>
+    <td>${o.fact ? o.fact.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : ''}</td>
     <td class="r">${o.price != null ? money(o.price) : '—'}</td><td class="r">${o.clientOwes ? money(o.clientOwes) : ''}</td>
     <td class="r">${o.grams ? money(o.grams) + (o.parts.length > 1 ? ' <span class="kbd">(' + o.parts.length + ')</span>' : '') : ''}</td>
     <td class="r">${o.desT ? money(o.desT) + (o.isMeDes ? ' <span class="kbd">я</span>' : '') : ''}</td>
+    <td class="r">${o.scan ? money(o.scan) + (o.isMeScan ? ' <span class="kbd">я</span>' : '') : ''}</td>
     <td class="r"><input class="pct" data-act="share" inputmode="decimal" value="${o.share}" aria-label="Доля, %"></td>
     <td class="r mine ${o.mine < 0 ? 'neg' : ''}">${o.counts ? money(o.mine) : '—'}</td><td class="r">${o.counts ? money(o.partner) : '—'}</td>
     <td>${o.handed ? `<input type="checkbox" data-act="paid" ${o.paid ? 'checked' : ''} aria-label="Рассчитались">` : ''}</td></tr>`).join('');
   const cnt = show.filter(o => o.counts);
-  const foot = `<tfoot><tr><td colspan="5">Итого: ${show.length} заказов</td><td class="r">${money(sum(cnt, o => o.price))}</td><td class="r">${money(sum(cnt, o => o.clientOwes))}</td>
-    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td></td><td class="r mine">${money(sum(cnt, o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td></td></tr></tfoot>`;
-  $('pTable').innerHTML = head + '<tbody>' + (body || `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+ Новый заказ».'}</td></tr>`) + '</tbody>' + foot;
+  const foot = `<tfoot><tr><td colspan="7">Итого: ${show.length} заказов</td><td class="r">${money(sum(cnt, o => o.price))}</td><td class="r">${money(sum(cnt, o => o.clientOwes))}</td>
+    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td class="r">${money(sum(cnt, o => o.scan))}</td><td></td><td class="r mine">${money(sum(cnt, o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td></td></tr></tfoot>`;
+  $('pTable').innerHTML = head + '<tbody>' + (body || `<tr><td colspan="16" style="text-align:center;color:var(--muted);padding:24px">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+ Новый заказ».'}</td></tr>`) + '</tbody>' + foot;
   $('pTable').querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { tSort = { k: th.dataset.k, dir: tSort.k === th.dataset.k ? -tSort.dir : (th.classList.contains('r') ? -1 : 1) }; renderTable(); });
   $('pTable').querySelectorAll('tbody tr[data-id]').forEach(tr => tr.onclick = e => { if (e.target.closest('[data-act]')) return; openOrder(tr.dataset.id); renderTable(); });
   $('pTable').querySelectorAll('[data-act]').forEach(el => el.addEventListener('change', () => inlineSave(el)));
@@ -1251,7 +1304,7 @@ function renderTable() {
 async function inlineSave(el) {
   const o = p3().find(x => x.id === el.closest('tr').dataset.id); if (!o) return;
   const act = el.dataset.act, patch = {};
-  if (act === 'status') { patch['Статус'] = el.value; if (DONE.includes(el.value) && !o.fin) patch['Дата завершения'] = fmtDate(new Date()); }
+  if (act === 'status') { patch['Статус'] = el.value; if (el.value === 'Передан клиенту' && !o.fact) patch['Передан клиенту (факт)'] = fmtDate(new Date()); if (el.value !== 'Передан клиенту' && o.fact) patch['Передан клиенту (факт)'] = ''; }
   if (act === 'share') { const v = num(el.value); if (!(v >= 0 && v <= 100)) { el.value = o.share; return; } patch['Доля Асета, %'] = String(v).replace('.', ','); }
   if (act === 'paid') patch['Рассчитались'] = el.checked ? fmtDate(new Date()) : '';
   el.disabled = true; $('status').textContent = 'Сохраняю №' + o.no + '…';
@@ -1274,7 +1327,12 @@ function ordLine(o) {
   if (o.grams) flags.push((o.parts.length > 1 ? o.parts.length + ' печ. · ' : '') + money(o.grams) + ' г');
   if (o.des) flags.push('дизайн: ' + esc(o.des));
   if (o.clientOwes > 0 && o.pre > 0) flags.push('предоплата ' + money(o.pre));
-  if (o.handed) flags.push(o.paid ? '<span class="flag ok">рассчитались</span>' : '<span class="flag">к выплате</span>');
+  if (o.scan) flags.push('скан: ' + esc(o.scanner || '?') + ' ' + money(o.scan));
+  if (o.overdue) flags.push('<span class="flag bad">просрочен (до ' + o.plan.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ')</span>');
+  else if (o.open && o.plan) flags.push((o.dueSoon ? '<span class="flag">' : '<span>') + 'срок ' + o.plan.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + '</span>');
+  if (o.ready) flags.push('<span class="flag">ждёт выдачи</span>');
+  if (o.handed && o.fact) flags.push('передан ' + o.fact.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + (o.late ? ' <span class="flag bad">позже срока</span>' : ''));
+  if (o.handed) flags.push(o.paid ? '<span class="flag ok">рассчитались</span>' : '<span class="flag">Тимур ещё не рассчитался</span>');
   return `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no || '—'}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
     <div class="pr num"><b>${o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts ? `<span>мне ${money(o.mine)}</span>` : ''}</div>
     ${o.desc ? `<div class="ds">${esc(o.desc)}</div>` : ''}
@@ -1296,7 +1354,7 @@ function renderPStats() {
   const per = ms.map(m => ({ k: m, v: mine3d(p3().filter(o => o.month === m)), lab: MSHORT[+m.slice(5) - 1] }));
   const full = per.filter(p => p.k !== now && p.v);
   const avg = full.length ? sum(full, p => p.v) / full.length : 0;
-  const rev = sum(list, o => o.price);
+  const rev = sum(list, o => o.price + o.scan);
   $('ppKpi').innerHTML = [
     ['Мой доход', money(sum(per, p => p.v)) + ' ₸', ms.length + ' мес.'],
     ['В среднем в месяц', money(avg) + ' ₸', 'без текущего'],
@@ -1305,7 +1363,7 @@ function renderPStats() {
   ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   barChart($('ppChart'), per, { avg, sel: pMonth, money: true, click: k => { pMonth = k; go('p-orders'); } });
   const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(list.filter(o => o.isMeDes), o => o.desT), 'var(--accent)'],
-    ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
+    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
   const mx = Math.max(...parts.map(x => Math.abs(x[1])), 1);
   $('ppMix').innerHTML = parts.map(([t, v, c]) => `<div class="hb"><span>${t}</span><b class="num">${money(v)} ₸${rev ? ' · ' + Math.round(v / rev * 100) + '%' : ''}</b><div class="track"><i style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${c}"></i></div></div>`).join('') || '<div class="hint">Нет данных.</div>';
   barChart($('ppPlastic'), ms.map(m => ({ k: m, v: Math.round(sum(p3().filter(o => o.month === m), o => o.grams) / 100) / 10, lab: MSHORT[+m.slice(5) - 1] })), { sel: pMonth });
@@ -1327,8 +1385,13 @@ function renderDes() {
   const cur = group(p3().filter(o => o.month === dMonth));
   $('dList').innerHTML = cur.length ? cur.map(x => `<div class="kid"><div class="n">${esc(x.n)}${x.me ? ' <span class="tag soon" style="background:var(--accent-soft);color:var(--accent)">это я</span>' : ''}</div><div class="num"><b>${money(x.t)} ₸</b></div>
     <div class="m"><span>${x.cnt} ${x.cnt === 1 ? 'заказ' : x.cnt < 5 ? 'заказа' : 'заказов'}</span>${x.rub ? '<span>' + money(x.rub) + ' ₽</span>' : ''}</div></div>`).join('') : '<div class="empty" style="border:0">В этом месяце оплат дизайнерам нет.</div>';
-  const all = group(p3());
-  $('dAll').innerHTML = '<tr><th>Дизайнер</th><th class="r">Заказов</th><th class="r">Всего</th></tr>' + all.map(x => `<tr><td>${esc(x.n)}</td><td class="r num">${x.cnt}</td><td class="r num">${money(x.t)} ₸</td></tr>`).join('');
+  const sgroup = list => { const g = new Map(); list.filter(o => o.scan && !o.void).forEach(o => { const k = kidKey(o.scanner || '—'); const x = g.get(k) || { n: o.scanner || 'Не указан', cnt: 0, t: 0, me: o.isMeScan }; x.cnt++; x.t += o.scanHalf; g.set(k, x); }); return [...g.values()].sort((a, b) => b.t - a.t); };
+  const sc = sgroup(p3().filter(o => o.month === dMonth));
+  $('dScan').innerHTML = sc.length ? sc.map(x => `<div class="kid"><div class="n">${esc(x.n)}${x.me ? ' <span class="tag soon" style="background:var(--accent-soft);color:var(--accent)">это я</span>' : ''}</div><div class="num"><b>${money(x.t)} ₸</b></div>
+    <div class="m"><span>${x.cnt} ${x.cnt === 1 ? 'скан' : x.cnt < 5 ? 'скана' : 'сканов'} · 50%</span></div></div>`).join('') : '<div class="empty" style="border:0">В этом месяце сканов нет.</div>';
+  const all = group(p3()), sall = sgroup(p3());
+  $('dAll').innerHTML = '<tr><th>Кто</th><th class="r">Заказов</th><th class="r">Всего</th></tr>' + all.map(x => `<tr><td>${esc(x.n)} · дизайн</td><td class="r num">${x.cnt}</td><td class="r num">${money(x.t)} ₸</td></tr>`).join('')
+    + sall.map(x => `<tr><td>${esc(x.n)} · скан</td><td class="r num">${x.cnt}</td><td class="r num">${money(x.t)} ₸</td></tr>`).join('');
 }
 $('dPrev').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (i > 0) { dMonth = ms[i - 1]; renderDes(); } };
 $('dNext').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (i < ms.length - 1) { dMonth = ms[i + 1]; renderDes(); } };
@@ -1337,27 +1400,28 @@ $('dNext').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (
 let psConfirm = null;
 function renderPSettle() {
   if (!loaded3d) return;
-  const owed = p3().filter(o => o.counts && o.handed && !o.paid);
-  const ready = p3().filter(o => o.counts && o.status === 'Готов');
-  $('psKpi').innerHTML = `<div class="cell ${owed.length ? 'owe' : 'ok'}"><span class="label">К выплате</span><span class="v num">${money(sum(owed, o => o.mine))} ₸</span><span class="s">${owed.length} заказов передано</span></div>
-    <div class="cell"><span class="label">Готово, не передано</span><span class="v num">${money(sum(ready, o => o.mine))} ₸</span><span class="s">${ready.length} заказов</span></div>`;
-  const ms = [...new Set(owed.map(o => o.month))].sort().reverse();
-  $('psMonths').innerHTML = ms.length ? ms.map(m => { const l = owed.filter(o => o.month === m); const t = sum(l, o => o.mine);
-    return `<div class="mrow"><div><b>${mLabel(m)}</b></div><div class="num" style="color:var(--amber)"><b>${money(t)} ₸</b></div>
-      <div class="m">${l.map(o => '№' + o.no + ' ' + esc(o.client || '')).join(', ')}</div>
-      ${psConfirm === m ? `<div class="confirm"><span>Отметить ${l.length} заказов как рассчитанные?</span><button class="btn sm" data-yes="${m}">Да</button><button class="btn ghost sm" data-no="1">Нет</button></div>`
+  const st = settleMonths3d().reverse(), pay = st.filter(s => s.payable), wait = st.filter(s => !s.payable);
+  const ready = p3().filter(o => o.counts && o.ready);
+  $('psKpi').innerHTML = `<div class="cell ${pay.length ? 'owe' : 'ok'}"><span class="label">Тимур должен</span><span class="v num">${money(sum(pay, s => s.sum))} ₸</span><span class="s">${pay.length ? 'за ' + pay.map(s => MNAMES_S(s.m)).join(', ') : 'закрытых месяцев к оплате нет'}</span></div>
+    <div class="cell"><span class="label">Ждёт закрытия месяца</span><span class="v num">${money(sum(wait, s => s.sum + s.wait))} ₸</span><span class="s">${wait.map(s => MNAMES_S(s.m)).join(', ') || 'нет'}</span></div>`;
+  $('psMonths').innerHTML = st.length ? st.map(s => {
+    const m = s.m, t = s.sum;
+    const head = `<div><b>${mLabel(m)}</b></div><div class="num" style="color:${s.payable ? 'var(--amber)' : 'var(--muted)'}"><b>${money(t + (s.payable ? 0 : s.wait))} ₸</b></div>`;
+    if (!s.payable) return `<div class="mrow">${head}<div class="m">Месяц ещё не закрыт — не передано клиентам: ${s.open.map(o => '№' + o.no + ' ' + esc(o.client || o.desc.slice(0, 24)) + ' (' + o.status.toLowerCase() + ')').join(', ')}.</div><div class="m">Тимур рассчитается за ${MNAMES_S(m).toLowerCase()} целиком, когда все заказы будут переданы.</div></div>`;
+    return `<div class="mrow">${head}<div class="m">Все заказы месяца переданы · ${s.owed.length} заказов к расчёту</div>
+      ${psConfirm === m ? `<div class="confirm"><span>Тимур отдал ${money(t)} ₸ за ${MNAMES_S(m).toLowerCase()}?</span><button class="btn sm" data-yes="${m}">Да</button><button class="btn ghost sm" data-no="1">Нет</button></div>`
         : `<div class="confirm"><button class="btn ghost sm" data-close="${m}">Рассчитались</button></div>`}</div>`; }).join('')
-    : '<div class="empty" style="border:0">Тимур рассчитался за все переданные заказы.</div>';
+    : '<div class="empty" style="border:0">Тимур рассчитался за все месяцы.</div>';
   $('psMonths').querySelectorAll('[data-close]').forEach(b => b.onclick = () => { psConfirm = b.dataset.close; renderPSettle(); });
   $('psMonths').querySelectorAll('[data-no]').forEach(b => b.onclick = () => { psConfirm = null; renderPSettle(); });
   $('psMonths').querySelectorAll('[data-yes]').forEach(b => b.onclick = async () => {
     b.disabled = true; b.textContent = 'Записываю…';
     const today = fmtDate(new Date());
-    try { for (const o of owed.filter(x => x.month === b.dataset.yes)) await saveOrderRow(o, { 'Рассчитались': today });
+    try { for (const o of settle3d(b.dataset.yes).owed) await saveOrderRow(o, { 'Рассчитались': today });
       psConfirm = null; await refreshNow(); $('status').textContent = mLabel(b.dataset.yes) + ': рассчитались.'; }
     catch (e) { b.disabled = false; b.textContent = 'Да'; showWriteError(e); }
   });
-  const cl = p3().filter(o => o.clientOwes > 0 && o.done);
+  const cl = p3().filter(o => o.clientOwes > 0 && (o.done || o.ready));
   $('psClients').innerHTML = cl.length ? cl.map(o => `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
     <div class="pr num"><b>${money(o.clientOwes)} ₸</b><span style="color:var(--muted);font-weight:400">из ${money(o.price)}</span></div><div class="mt"><span class="st ${ST_CLS[o.status]}">${o.status}</span><span>${mLabel(o.month)}</span></div></button>`).join('')
     : '<div class="empty" style="border:0">Все готовые заказы оплачены клиентами.</div>';
@@ -1381,7 +1445,7 @@ async function saveOrderRow(o, patch) {
       // проверяем, что строка на месте (таблицу могли поменять)
       const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}` }, { cache: false });
       const v = payloadValues(chk); if (!v || !v[0] || v[0][0] !== o.id) throw { code: 'moved', message: 'Таблица изменилась. Нажмите «Обновить» и повторите.' };
-      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:T${o.row}`, values: [row] });
+      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:W${o.row}`, values: [row] });
     }
     return mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'3D-заказы'!A1", values: [row] });
   }
@@ -1411,7 +1475,11 @@ function openOrder(id) {
   $('oDesPay').value = o && o.desPay ? o.desPay : '';
   ordCur = o && o.desPay ? o.cur : '₽';
   $('oRate').value = o ? o.rate : (last ? last.rate : 5.5);
-  $('oFin').value = isoDate(o ? o.fin : null);
+  $('oPlan').value = isoDate(o ? o.plan : null);
+  $('oFact').value = isoDate(o ? o.fact : null);
+  $('oScan').value = o && o.scan ? o.scan : '';
+  $('oScanner').value = o ? o.scanner : '';
+  $('oScanners').innerHTML = [...new Set(['Асет', ...p3().map(x => x.scanner).filter(Boolean)])].map(c => `<option value="${esc(c)}">`).join('');
   $('oPaid').checked = !!(o && o.paid);
   $('oNote').value = o ? o.note : '';
   $('oErr').hidden = true; $('oSaved').textContent = '';
@@ -1423,12 +1491,12 @@ function openOrder(id) {
 function formOrder() {
   const o = { parts: oParts, plPrice: num($('oPlPrice').value) || 0, desPay: num($('oDesPay').value), cur: ordCur, rate: num($('oRate').value) || 0,
     des: $('oDes').value.trim(), price: $('oPrice').value.trim() === '' ? null : num($('oPrice').value), pre: num($('oPre').value),
-    share: num($('oShare').value), status: oStatus };
+    share: num($('oShare').value), status: oStatus, scan: num($('oScan').value), scanner: $('oScanner').value.trim() };
   return calc3d(o);
 }
 function drawOrderForm() {
   $('oStatus').innerHTML = STATUSES.map(([s]) => `<button type="button" data-s="${s}" aria-pressed="${s === oStatus}">${s}</button>`).join('');
-  $('oStatus').querySelectorAll('button').forEach(b => b.onclick = () => { oStatus = b.dataset.s; if (DONE.includes(oStatus) && !$('oFin').value) $('oFin').value = isoDate(new Date()); drawOrderForm(); });
+  $('oStatus').querySelectorAll('button').forEach(b => b.onclick = () => { oStatus = b.dataset.s; if (oStatus === 'Передан клиенту' && !$('oFact').value) $('oFact').value = isoDate(new Date()); if (oStatus !== 'Передан клиенту') $('oFact').value = ''; drawOrderForm(); });
   $('oParts').innerHTML = oParts.length ? oParts.map((g, i) => `<span class="part">${money(g)} г<button type="button" data-i="${i}" aria-label="Убрать">×</button></span>`).join('') + `<span class="status">итого ${money(oParts.reduce((s, x) => s + x, 0))} г</span>` : '<span class="status">Пока ничего не напечатано</span>';
   $('oParts').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { oParts.splice(+b.dataset.i, 1); drawOrderForm(); });
   $('oCur').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === ordCur)));
@@ -1437,10 +1505,10 @@ function drawOrderForm() {
   const line = (t, v, cls) => `<span>${t}</span><span class="r ${cls || ''}">${v}</span>`;
   $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы посчитать доли.</span><span></span>' :
     line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line(f.isMeDes ? 'Дизайн (мне)' : 'Дизайнеру', '−' + money(f.desT) + ' ₸') : '') +
-    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + line('Тимуру', money(f.partner) + ' ₸') +
-    (f.pre ? line('Клиент ещё должен', money(Math.max(f.price - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.mine) + ' ₸', 'tot');
+    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
+    (f.scan ? line('Скан (отдельно)', money(f.scan) + ' ₸') : '') + (f.pre ? line('Клиент ещё должен', money(Math.max(f.price + f.scan - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.mine) + ' ₸', 'tot');
 }
-['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate'].forEach(id => $(id).addEventListener('input', drawOrderForm));
+['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate', 'oScan', 'oScanner'].forEach(id => $(id).addEventListener('input', drawOrderForm));
 $('oCur').querySelectorAll('button').forEach(b => b.onclick = () => { ordCur = b.dataset.c; drawOrderForm(); });
 function addPart() { const v = num($('oPartIn').value); if (v > 0) { oParts.push(v); $('oPartIn').value = ''; drawOrderForm(); } $('oPartIn').focus(); }
 $('oPartAdd').onclick = addPart;
@@ -1457,7 +1525,8 @@ $('ordForm').addEventListener('submit', async e => {
   const no = o ? o.no : Math.max(0, ...p3().filter(x => x.month === mon).map(x => x.no)) + 1;
   const n = v => { const x = String(v).trim(); return x === '' ? '' : String(num(x)).replace('.', ','); };
   const patch = { 'ID': o ? o.id : 'p' + Math.random().toString(16).slice(2, 9), '№': String(no), 'Дата заказа': d, 'Месяц': mon,
-    'Дата завершения': fromIso($('oFin').value), 'Клиент': $('oClient').value.trim(), 'Описание': $('oDesc').value.trim(), 'Статус': oStatus,
+    'Плановая дата': fromIso($('oPlan').value), 'Передан клиенту (факт)': fromIso($('oFact').value),
+    'Сканирование, ₸': n($('oScan').value), 'Сканировал': $('oScan').value.trim() ? $('oScanner').value.trim() : '', 'Клиент': $('oClient').value.trim(), 'Описание': $('oDesc').value.trim(), 'Статус': oStatus,
     'Цена заказа, ₸': n($('oPrice').value), 'Предоплата, ₸': n($('oPre').value), 'Пластик, г (части через +)': oParts.map(x => String(x).replace('.', ',')).join('+'),
     'Цена пластика, ₸/г': n($('oPlPrice').value), 'Дизайнер': $('oDes').value.trim(), 'Оплата дизайнеру': n($('oDesPay').value),
     'Валюта': $('oDesPay').value.trim() ? ordCur : '', 'Курс ₽→₸': n($('oRate').value), 'Доля Асета, %': n($('oShare').value),
