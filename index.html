@@ -196,6 +196,91 @@ tr:last-child td { border-bottom: 0; }
 .row2 > * { flex: 1; }
 .err { color: var(--red); font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .icon-btn.spin svg { animation: none; } }
+
+/* разделы */
+.sections { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--line); border-radius: 12px; padding: 4px; }
+.sections button { border: 0; background: transparent; border-radius: 9px; padding: 9px 4px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); }
+.sections button[aria-pressed="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.tabbar nav[hidden] { display: none !important; }
+.jobcard { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; }
+.jobcard .t { font-weight: 600; font-size: 16px; }
+.jobcard .v { font-family: var(--f-display); font-weight: 700; font-size: 22px; }
+.jobcard .m { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.jobcard .go { color: var(--muted); font-size: 22px; align-self: center; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* 3D-печать */
+.ord { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 14px; cursor: pointer; text-align: left; width: 100%; background: none; border: 0; font: inherit; color: inherit; }
+.ord + .ord { border-top: 1px solid var(--line); }
+.ord .h { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.ord .no { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.ord .cl { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.ord .ds { grid-column: 1 / -1; color: var(--muted); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+.ord .pr { text-align: right; white-space: nowrap; }
+.ord .pr b { display: block; }
+.ord .pr span { font-size: 12.5px; color: var(--accent); font-weight: 600; }
+.ord .mt { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12.5px; color: var(--muted); }
+.st { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; background: var(--line); color: var(--fg); }
+.st.s-talk { background: var(--amber-soft); color: var(--amber); }
+.st.s-model, .st.s-queue, .st.s-print, .st.s-post { background: var(--blue-soft); color: var(--blue); }
+.st.s-ready { background: var(--accent-soft); color: var(--accent); }
+.st.s-done { background: var(--accent); color: var(--bg); }
+.st.s-quiet { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+.st.s-void { background: var(--red-soft); color: var(--red); }
+.flag { font-size: 11px; font-weight: 600; color: var(--amber); }
+.flag.ok { color: var(--accent); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips button { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 7px 11px; cursor: pointer; font-size: 13px; }
+.chips button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.parts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.part { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 4px 6px 4px 10px; font-size: 13.5px; }
+.part button { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 4px; }
+.calc { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; background: var(--bg); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.calc .r { text-align: right; font-variant-numeric: tabular-nums; }
+.calc .tot { font-weight: 700; color: var(--accent); }
+.field textarea { font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; min-height: 76px; resize: vertical; }
+.check { display: flex; gap: 10px; align-items: center; font-size: 15px; }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); }
+.sheet .grp { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-top: 6px; }
+.seg2 { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.seg2 button { border: 0; background: var(--bg); padding: 10px 14px; cursor: pointer; font-size: 15px; }
+.seg2 button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+/* ноутбук: таблица заказов и боковая карточка */
+.ptools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ptools .search { flex: 1 1 260px; width: auto; }
+.ptbl-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.ptbl { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.ptbl th { position: sticky; top: 0; background: var(--surface); cursor: pointer; user-select: none; white-space: nowrap; padding: 10px 8px; }
+.ptbl th.sorted { color: var(--fg); }
+.ptbl td { padding: 8px; vertical-align: top; }
+.ptbl tbody tr { cursor: pointer; }
+.ptbl tbody tr:hover td { background: var(--bg); }
+.ptbl tbody tr.sel td { background: var(--accent-soft); }
+.ptbl td.r, .ptbl th.r { text-align: right; white-space: nowrap; }
+.ptbl td.desc { max-width: 320px; color: var(--muted); }
+.ptbl td.desc div { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+.ptbl td.cl { font-weight: 600; max-width: 180px; overflow-wrap: anywhere; }
+.ptbl select { font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+.ptbl input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); }
+.ptbl input.pct { width: 54px; font: inherit; font-size: 13px; padding: 4px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-align: right; }
+.ptbl tfoot td { font-weight: 700; border-top: 2px solid var(--line); border-bottom: 0; background: var(--bg); }
+.ptbl .mine { color: var(--accent); font-weight: 600; }
+.ptbl .neg { color: var(--red); }
+#pTableBox { display: none; }
+.kbd { font-size: 12px; color: var(--muted); }
+.kbd b { border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; font-weight: 600; }
+@media (min-width: 1000px) {
+  body.wide .wrap { max-width: 1320px; }
+  body.wide #pTableBox { display: flex; flex-direction: column; gap: 10px; }
+  body.wide #pList, body.wide #pSearchRow { display: none; }
+  body.wide #pKpi { grid-template-columns: repeat(4, 1fr); }
+  body.wide .fab { display: none; }
+  #ordBg { justify-content: flex-end; align-items: stretch; background: rgba(10,15,12,.22); }
+  #ordBg .sheet { max-width: 500px; height: 100%; max-height: none; border-radius: 0; box-shadow: -10px 0 30px rgba(0,0,0,.12); }
+  .wide-hide { display: none; }
+}
 </style>
 </head>
 <body>
@@ -212,7 +297,34 @@ tr:last-child td { border-bottom: 0; }
     </div>
   </header>
 
+  <nav class="sections" id="sections" aria-label="Работа">
+    <button data-s="all" aria-pressed="true">Общее</button>
+    <button data-s="coach" aria-pressed="false">Тренерство</button>
+    <button data-s="print" aria-pressed="false">3D-печать</button>
+  </nav>
+
   <div id="notice"></div>
+
+  <!-- ОБЩЕЕ -->
+  <section id="v-all" class="view" hidden style="flex-direction:column;gap:18px">
+    <div class="monthnav">
+      <button id="aPrev" aria-label="Предыдущий месяц">‹</button>
+      <div class="mname" id="aName">—</div>
+      <button id="aNext" aria-label="Следующий месяц">›</button>
+    </div>
+    <div class="hero">
+      <div class="label">Зарплата за месяц, обе работы</div>
+      <div class="big num" id="aTotal">—</div>
+      <div class="goal" id="aGoalBox" hidden>
+        <div class="goal-bar"><i id="aGoalFill" style="width:0"></i></div>
+        <div class="goal-t"><span id="aGoalL"></span><span id="aGoalR"></span></div>
+      </div>
+    </div>
+    <div class="grid2" id="aKpi"></div>
+    <button class="card jobcard" id="aCoach"></button>
+    <button class="card jobcard" id="aPrint"></button>
+    <div class="card chart"><h3>По месяцам</h3><div class="legend"><span><i style="background:var(--accent)"></i>Тренерство</span><span><i style="background:var(--blue)"></i>3D-печать</span></div><div id="aChart"></div></div>
+  </section>
 
   <!-- ГЛАВНАЯ -->
   <section id="v-home" class="view" style="display:flex;flex-direction:column;gap:18px">
@@ -271,17 +383,80 @@ tr:last-child td { border-bottom: 0; }
     <div class="status">Если с тренером уже рассчитались, а в таблицу это не попало, нажмите «Рассчитались» — месяц закроется.</div>
   </section>
 
+  <!-- 3D: ЗАКАЗЫ -->
+  <section id="v-p-orders" class="view" hidden style="flex-direction:column;gap:16px">
+    <div class="monthnav">
+      <button id="pPrev" aria-label="Предыдущий месяц">‹</button>
+      <div class="mname" id="pName">—</div>
+      <button id="pNext" aria-label="Следующий месяц">›</button>
+    </div>
+    <div class="hero">
+      <div class="label">Мой доход с 3D за месяц</div>
+      <div class="big num" id="pMine">—</div>
+    </div>
+    <div class="grid2" id="pKpi"></div>
+    <div id="pSearchRow"><input class="search" id="pSearch" type="search" placeholder="Поиск: клиент, описание, №" autocomplete="off"></div>
+    <div class="chips" id="pFilter"></div>
+    <div id="pTableBox">
+      <div class="ptools">
+        <input class="search" id="pSearch2" type="search" placeholder="Поиск по всем заказам: клиент, описание, №" autocomplete="off">
+        <label class="check" style="font-size:14px"><input type="checkbox" id="pAllMonths"> Все месяцы</label>
+        <button class="btn" id="pNew" type="button">+ Новый заказ</button>
+      </div>
+      <div class="ptbl-wrap"><table class="ptbl" id="pTable"></table></div>
+      <div class="kbd">Нажмите на строку, чтобы открыть заказ. Статус, долю и «рассчитались» можно менять прямо в таблице. <b>N</b> — новый заказ, <b>/</b> — поиск, <b>Esc</b> — закрыть карточку.</div>
+    </div>
+    <div class="ops" id="pList"></div>
+  </section>
+
+  <!-- 3D: СТАТИСТИКА -->
+  <section id="v-p-stats" class="view" hidden style="flex-direction:column;gap:18px">
+    <div class="seg" id="ppPeriod"></div>
+    <div class="grid2" id="ppKpi"></div>
+    <div class="card chart"><h3>Мой доход по месяцам</h3><div class="hint">Пунктир — среднее. Нажмите на столбик, чтобы открыть заказы месяца.</div><div id="ppChart"></div></div>
+    <div class="card"><h3>Куда уходят деньги заказов</h3><div class="hbars" id="ppMix"></div></div>
+    <div class="card chart"><h3>Пластик по месяцам, кг</h3><div id="ppPlastic"></div></div>
+    <div class="card"><h3>Лучшие клиенты</h3><div class="tbl-wrap"><table id="ppClients"></table></div></div>
+  </section>
+
+  <!-- 3D: ДИЗАЙНЕРЫ -->
+  <section id="v-p-des" class="view" hidden style="flex-direction:column;gap:18px">
+    <div class="monthnav">
+      <button id="dPrev" aria-label="Предыдущий месяц">‹</button>
+      <div class="mname" id="dName">—</div>
+      <button id="dNext" aria-label="Следующий месяц">›</button>
+    </div>
+    <div class="ops" id="dList"></div>
+    <div class="card"><h3>За всё время</h3><div class="tbl-wrap"><table id="dAll"></table></div></div>
+    <div class="status">Если дизайнер — ты (имя «Асет»), оплата за дизайн добавляется к твоему доходу.</div>
+  </section>
+
+  <!-- 3D: РАСЧЁТЫ -->
+  <section id="v-p-settle" class="view" hidden style="flex-direction:column;gap:18px">
+    <div class="grid2" id="psKpi"></div>
+    <div class="status" style="text-align:left">Расчёт с Тимуром идёт по факту выполнения: когда заказ передан клиенту, твоя доля переходит в «к выплате». Доход при этом остаётся в месяце, когда заказ был принят.</div>
+    <div class="ops" id="psMonths"></div>
+    <h2 class="sec">Ждут оплаты клиента</h2>
+    <div class="ops" id="psClients"></div>
+  </section>
+
   <div class="status" id="status"></div>
 </div>
 
 <button class="fab" id="fab" aria-label="Добавить запись">+</button>
 
-<div class="tabbar">
-  <nav aria-label="Разделы">
+<div class="tabbar" id="tabbar">
+  <nav aria-label="Тренерство" id="navCoach">
     <button data-v="home" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Главная</button>
     <button data-v="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Статистика</button>
     <button data-v="kids"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17.5" cy="9.5" r="2.5"/><path d="M16.5 14.6c2.6.1 4.4 1.9 5 4.9"/></svg>Дети</button>
     <button data-v="settle"><svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Расчёты</button>
+  </nav>
+  <nav aria-label="3D-печать" id="navPrint" hidden>
+    <button data-v="p-orders"><svg viewBox="0 0 24 24"><path d="M6 3h12l2 4H4z"/><rect x="4" y="7" width="16" height="9" rx="1"/><path d="M9 16v5h6v-5"/></svg>Заказы</button>
+    <button data-v="p-stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Статистика</button>
+    <button data-v="p-des"><svg viewBox="0 0 24 24"><path d="M3 21l3-1 11-11-2-2L4 18z"/><path d="M14 6l2-2 4 4-2 2"/></svg>Дизайнеры</button>
+    <button data-v="p-settle"><svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Расчёты</button>
   </nav>
 </div>
 
@@ -320,10 +495,59 @@ tr:last-child td { border-bottom: 0; }
   </form>
 </div>
 
+<div class="sheet-bg" id="ordBg" hidden>
+  <form class="sheet" id="ordForm" autocomplete="off">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 id="oTitle">Новый заказ</h2><span class="status" id="oSaved"></span></div>
+    <div class="field"><label>Статус</label><div class="chips" id="oStatus"></div></div>
+    <div class="row2">
+      <div class="field"><label for="oClient">Клиент</label><input id="oClient" list="oClients" placeholder="Имя или ник"></div>
+      <div class="field"><label for="oDate">Дата заказа</label><input id="oDate" type="date"></div>
+    </div>
+    <div class="field"><label for="oDesc">Что печатаем</label><textarea id="oDesc" placeholder="Например: фигурки для кофейни, 3 вида по 200 шт"></textarea></div>
+    <div class="grp">Деньги</div>
+    <div class="row2">
+      <div class="field"><label for="oPrice">Цена заказа, ₸</label><input id="oPrice" inputmode="decimal" placeholder="60000"></div>
+      <div class="field"><label for="oPre">Предоплата, ₸</label><input id="oPre" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="grp">Пластик</div>
+    <div class="field">
+      <label>Напечатано частями, г</label>
+      <div class="parts" id="oParts"></div>
+      <div class="row2"><input id="oPartIn" class="search" inputmode="decimal" placeholder="Сколько грамм ушло на эту печать"><button type="button" class="btn ghost" id="oPartAdd" style="flex:0 0 auto">Добавить</button></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="oPlPrice">Цена пластика, ₸/г</label><input id="oPlPrice" inputmode="decimal"></div>
+      <div class="field"><label for="oShare">Моя доля в этом заказе, %</label><input id="oShare" inputmode="decimal"></div>
+    </div>
+    <div class="grp">Дизайн</div>
+    <div class="row2">
+      <div class="field"><label for="oDes">Дизайнер</label><input id="oDes" list="oDesigners" placeholder="Нет / Рада / Асет"></div>
+      <div class="field"><label for="oDesPay">Оплата за дизайн</label><input id="oDesPay" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Валюта</label><div class="seg2" id="oCur"><button type="button" data-c="₽">₽ рубли</button><button type="button" data-c="₸">₸ тенге</button></div></div>
+      <div class="field" id="oRateF"><label for="oRate">Курс ₽→₸</label><input id="oRate" inputmode="decimal"></div>
+    </div>
+    <div class="calc" id="oCalc"></div>
+    <div class="grp">Ещё</div>
+    <div class="row2">
+      <div class="field"><label for="oFin">Дата завершения</label><input id="oFin" type="date"></div>
+      <div class="field" style="justify-content:flex-end"><label class="check"><input type="checkbox" id="oPaid"> Тимур со мной рассчитался</label></div>
+    </div>
+    <div class="field"><label for="oNote">Примечание</label><input id="oNote" placeholder="Необязательно"></div>
+    <div class="err" id="oErr" hidden></div>
+    <div class="row2">
+      <button type="button" class="btn ghost" id="oCancel">Закрыть</button>
+      <button type="submit" class="btn" id="oSave">Сохранить</button>
+    </div>
+  </form>
+</div>
+<datalist id="oClients"></datalist><datalist id="oDesigners"></datalist>
+
 <div class="sheet-bg" id="goalBg" hidden>
   <form class="sheet" id="goalForm" autocomplete="off">
     <h2>Цель на месяц</h2>
-    <div class="field"><label for="gAmount">Сколько хочу зарабатывать в месяц, ₸</label><input id="gAmount" inputmode="numeric" placeholder="400000"></div>
+    <div class="field"><label for="gAmount">Сколько хочу зарабатывать в месяц (обе работы на «Общем», тренерство — в его разделе), ₸</label><input id="gAmount" inputmode="numeric" placeholder="400000"></div>
     <div class="status" style="text-align:left">Цель хранится только на этом устройстве. Чтобы убрать её, оставьте поле пустым.</div>
     <div class="row2"><button type="button" class="btn ghost" id="gCancel">Отмена</button><button type="submit" class="btn">Сохранить</button></div>
   </form>
@@ -414,9 +638,9 @@ const kidKey = s => s.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').tr
 function renderHeader() {
   const h = new Date().getHours();
   $('hello').textContent = h < 5 ? 'Доброй ночи, Асет' : h < 12 ? 'Доброе утро, Асет' : h < 18 ? 'Добрый день, Асет' : 'Добрый вечер, Асет';
-  if (!loaded) return;
-  const cur = mine().filter(r => r.month === mk(new Date()));
-  const e = sum(cur, r => r.acc);
+  if (!loaded && !(typeof loaded3d !== 'undefined' && loaded3d)) return;
+  const nowK = mk(new Date());
+  const e = sum(mine().filter(r => r.month === nowK), r => r.acc) + (typeof orders !== 'undefined' ? mine3d(orders.filter(o => o.month === nowK)) : 0);
   const PREP = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
   $('sub').textContent = 'В ' + PREP[new Date().getMonth()] + ' уже ' + money(e) + ' ₸';
 }
@@ -654,8 +878,15 @@ async function closeMonth(m, amount, btn) {
 }
 
 /* ---------- общий рендер ---------- */
+const SECTION_OF = v => v === 'all' ? 'all' : v.startsWith('p-') ? 'print' : 'coach';
+const lastView = { coach: 'home', print: 'p-orders' };
 function render() {
   renderHeader();
+  if (view === 'all') renderAll();
+  if (view === 'p-orders') renderOrders();
+  if (view === 'p-stats') renderPStats();
+  if (view === 'p-des') renderDes();
+  if (view === 'p-settle') renderPSettle();
   if (view === 'home') renderHome();
   if (view === 'stats') renderStats();
   if (view === 'kids') renderKids();
@@ -665,11 +896,17 @@ function go(v) {
   view = v;
   document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; s.style.display = s.hidden ? '' : 'flex'; });
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
-  $('fab').hidden = v !== 'home' || !src;
+  const sec = SECTION_OF(v); if (sec !== 'all') lastView[sec] = v;
+  $('sections').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === sec)));
+  $('tabbar').hidden = sec === 'all'; $('navCoach').hidden = sec !== 'coach'; $('navPrint').hidden = sec !== 'print';
+  $('fab').hidden = !['home', 'p-orders'].includes(v) || !src;
+  try { store.set('view', v); } catch (e) {}
+  document.body.classList.toggle('wide', v === 'p-orders' && isWide());
   window.scrollTo(0, 0);
   render();
 }
 document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => go(b.dataset.v));
+$('sections').querySelectorAll('button').forEach(b => b.onclick = () => go(b.dataset.s === 'all' ? 'all' : lastView[b.dataset.s]));
 $('kidSearch').addEventListener('input', renderKids);
 
 function setNotice(html, warn) { $('notice').innerHTML = html ? `<div class="notice ${warn ? 'warn' : ''}">${html}</div>` : ''; }
@@ -704,7 +941,13 @@ async function refreshNow() {
   if (!src) return;
   const b = $('refresh'); b.classList.add('spin'); b.disabled = true;
   try {
-    if (src === 'mcp') onData(await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE }, { cache: { staleTime: 0, gcTime: 604800000, refresh: true } }));
+    if (src === 'mcp') {
+      const [a, b3] = await Promise.all([
+        mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE }, { cache: { staleTime: 0, gcTime: 604800000, refresh: true } }),
+        mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE3D }, { cache: { staleTime: 0, gcTime: 604800000, refresh: true } }).catch(() => null)]);
+      if (b3) { loaded3d = true; ingest3d(payloadValues(b3) || []); }
+      onData(a);
+    }
     else await apiLoad();
   } catch (e) { onError(e); }
   finally { b.classList.remove('spin'); b.disabled = false; }
@@ -727,6 +970,7 @@ async function apiLoad() {
   try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json()); }
   catch (e) { onError({ code: 'server_unavailable' }); return; }
   if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
+  if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
   onData({ payload: { values: res.values } });
 }
 function askKey(err) {
@@ -734,14 +978,17 @@ function askKey(err) {
   setNotice(`<b>Вход</b><span>Введите ключ доступа. Он записан в таблице «Зарплата» на листе «Настройки» → «Ключ приложения». Вводится один раз на этом устройстве.</span>
     <form id="keyForm" class="row2"><input id="keyIn" class="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ключ"><button class="btn" type="submit">Войти</button></form>
     ${err ? '<span class="err">' + esc(err) + '</span>' : ''}`, true);
-  $('keyForm').onsubmit = e => { e.preventDefault(); const v = $('keyIn').value.trim(); if (!v) return; store.set('appKey', v); setNotice('Проверяю ключ…'); src = 'api'; $('fab').hidden = view !== 'home'; refreshNow(); };
+  $('keyForm').onsubmit = e => { e.preventDefault(); const v = $('keyIn').value.trim(); if (!v) return; store.set('appKey', v); setNotice('Проверяю ключ…'); src = 'api'; $('fab').hidden = !['home', 'p-orders'].includes(view); refreshNow(); };
 }
 
 async function boot() {
-  renderHeader(); go('home');
+  renderHeader();
+  let v0 = 'all'; try { v0 = store.get('view') || 'all'; } catch (e) {}
+  const h = (location.hash || '').slice(1); if (h && document.getElementById('v-' + h)) v0 = h;
+  go(document.getElementById('v-' + v0) ? v0 : 'all');
   const inClaude = !!(window.claude && window.claude.use);
   if (!inClaude && API_URL) {
-    src = 'api'; $('fab').hidden = view !== 'home';
+    src = 'api'; $('fab').hidden = !['home', 'p-orders'].includes(view);
     await apiLoad();
     setInterval(() => { if (document.visibilityState === 'visible' && store.get('appKey')) apiLoad(); }, 60000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && store.get('appKey')) apiLoad(); });
@@ -749,8 +996,10 @@ async function boot() {
   }
   mcp = inClaude ? await window.claude.use('mcp') : null;
   if (!mcp) { $('feed').innerHTML = ''; $('fab').hidden = true; setNotice('Откройте эту страницу через claude.ai, войдя в свой аккаунт: данные берутся из вашей Google Таблицы через подключение Claude.', true); return; }
-  src = 'mcp'; $('fab').hidden = view !== 'home';
+  src = 'mcp'; $('fab').hidden = !['home', 'p-orders'].includes(view);
   mcp.watchTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE }, ev => { if (ev.type === 'data') onData(ev.result); else onError(ev.error); },
+    { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
+  mcp.watchTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE3D }, ev => { if (ev.type === 'data') onData3d(ev.result); },
     { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
 }
 
@@ -762,7 +1011,7 @@ $('next').onclick = () => { const ms = monthList(), i = ms.indexOf(month); if (i
 $('goalBtn').onclick = () => { $('gAmount').value = store.get('goal') || ''; $('goalBg').hidden = false; $('gAmount').focus(); };
 $('gCancel').onclick = () => { $('goalBg').hidden = true; };
 $('goalBg').addEventListener('click', e => { if (e.target === $('goalBg')) $('goalBg').hidden = true; });
-$('goalForm').addEventListener('submit', e => { e.preventDefault(); const v = num($('gAmount').value); store.set('goal', v > 0 ? String(Math.round(v)) : null); $('goalBg').hidden = true; renderHome(); });
+$('goalForm').addEventListener('submit', e => { e.preventDefault(); const v = num($('gAmount').value); store.set('goal', v > 0 ? String(Math.round(v)) : null); $('goalBg').hidden = true; render(); });
 
 /* ---------- ручная запись ---------- */
 $('fCoach').innerHTML = COACHES.map(c => `<option>${c}</option>`).join('');
@@ -775,6 +1024,7 @@ function syncForm() {
 }
 $('fType').onchange = syncForm;
 $('fab').onclick = () => {
+  if (view === 'p-orders') { openOrder(null); return; }
   const d = new Date(); $('fDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   $('fErr').hidden = true; syncForm(); $('sheetBg').hidden = false;
 };
@@ -820,6 +1070,414 @@ $('addForm').addEventListener('submit', async e => {
   } catch (er) { showWriteError(er); }
   finally { $('fSave').disabled = false; $('fSave').textContent = 'Записать'; }
 });
+
+/* =====================  РАЗДЕЛЫ И 3D-ПЕЧАТЬ  ===================== */
+const RANGE3D = "'3D-заказы'!A1:T";
+const C3 = ['ID', '№', 'Дата заказа', 'Месяц', 'Дата завершения', 'Клиент', 'Описание', 'Статус', 'Цена заказа, ₸', 'Предоплата, ₸',
+  'Пластик, г (части через +)', 'Цена пластика, ₸/г', 'Дизайнер', 'Оплата дизайнеру', 'Валюта', 'Курс ₽→₸', 'Доля Асета, %', 'Рассчитались', 'Примечание', 'Источник'];
+const STATUSES = [
+  ['На согласовании', 's-talk'], ['Моделируется', 's-model'], ['В очереди', 's-queue'], ['Печатается', 's-print'], ['Постобработка', 's-post'],
+  ['Готов', 's-ready'], ['Передан клиенту', 's-done'], ['Тишина', 's-quiet'], ['Возврат', 's-void'], ['Отменён', 's-void']];
+const ST_CLS = Object.fromEntries(STATUSES);
+const ACTIVE = ['На согласовании', 'Моделируется', 'В очереди', 'Печатается', 'Постобработка'];
+const DONE = ['Готов', 'Передан клиенту'];
+const VOID = ['Возврат', 'Отменён'];
+const ME = /^асет/i;
+
+let orders = [], loaded3d = false, pMonth = null, pFilter = 'all', ppPeriod = '12', dMonth = null, aMonth = null, editing = null, ordCur = '₽';
+
+function ingest3d(values) {
+  if (!Array.isArray(values) || !values.length) { orders = []; return; }
+  const head = values[0].map(h => String(h).trim());
+  const ix = Object.fromEntries(C3.map(n => [n, head.indexOf(n)]));
+  const g = (r, n) => ix[n] >= 0 ? String(r[ix[n]] ?? '').trim() : '';
+  orders = values.slice(1).map((r, i) => {
+    const o = { row: i + 2, raw: r, id: g(r, 'ID'), no: num(g(r, '№')), date: parseDate(g(r, 'Дата заказа')), fin: parseDate(g(r, 'Дата завершения')),
+      client: g(r, 'Клиент'), desc: g(r, 'Описание'), status: g(r, 'Статус') || 'На согласовании',
+      price: g(r, 'Цена заказа, ₸') === '' ? null : num(g(r, 'Цена заказа, ₸')), pre: num(g(r, 'Предоплата, ₸')),
+      parts: g(r, 'Пластик, г (части через +)').replace(/^'/, '').split('+').map(x => num(x)).filter(x => x > 0),
+      plPrice: g(r, 'Цена пластика, ₸/г') === '' ? 5 : num(g(r, 'Цена пластика, ₸/г')),
+      des: g(r, 'Дизайнер'), desPay: num(g(r, 'Оплата дизайнеру')), cur: g(r, 'Валюта') || '₽',
+      rate: g(r, 'Курс ₽→₸') === '' ? 5.5 : num(g(r, 'Курс ₽→₸')), share: g(r, 'Доля Асета, %') === '' ? 35 : num(g(r, 'Доля Асета, %')),
+      paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник') };
+    let m = g(r, 'Месяц').replace(/^'/, '');
+    if (!/^\d{4}-\d{2}$/.test(m)) m = o.date ? mk(o.date) : '';
+    o.month = m;
+    return calc3d(o);
+  }).filter(o => o.id && o.month);
+}
+function calc3d(o) {
+  o.grams = o.parts.reduce((s, x) => s + x, 0);
+  o.material = o.grams * o.plPrice;
+  o.desT = o.desPay * (o.cur === '₸' ? 1 : o.rate);
+  o.isMeDes = ME.test(o.des);
+  o.net = (o.price || 0) - o.desT - o.material;
+  o.myShare = o.net * o.share / 100;
+  o.mine = o.myShare + (o.isMeDes ? o.desT : 0);
+  o.partner = o.net - o.myShare;
+  o.void = VOID.includes(o.status);
+  o.done = DONE.includes(o.status);
+  o.handed = o.status === 'Передан клиенту';
+  o.counts = !o.void && o.price != null;
+  o.clientOwes = o.price != null && !o.void ? Math.max(o.price - o.pre, 0) : 0;
+  return o;
+}
+const p3 = () => orders;
+function months3d() { const s = new Set(p3().map(o => o.month)); s.add(mk(new Date())); return [...s].sort(); }
+const mine3d = list => sum(list.filter(o => o.counts), o => o.mine);
+
+/* ---------- ОБЩЕЕ ---------- */
+function allMonths() { return [...new Set([...monthList(), ...months3d()])].sort(); }
+function renderAll() {
+  const ms = allMonths(), now = mk(new Date());
+  if (!aMonth || !ms.includes(aMonth)) aMonth = ms.includes(now) ? now : ms[ms.length - 1];
+  const i = ms.indexOf(aMonth);
+  $('aPrev').disabled = i <= 0; $('aNext').disabled = i >= ms.length - 1;
+  $('aName').innerHTML = mLabel(aMonth) + (aMonth === now ? '<small>текущий месяц</small>' : '');
+  if (!loaded && !loaded3d) return;
+  const cRows = mine().filter(r => r.month === aMonth);
+  const cAcc = sum(cRows, r => r.acc), cOwe = Math.max(cAcc - sum(cRows, r => r.rec), 0);
+  const pList = p3().filter(o => o.month === aMonth);
+  const pMine = mine3d(pList), pDone = mine3d(pList.filter(o => o.done));
+  const pOweAll = sum(p3().filter(o => o.counts && o.handed && !o.paid), o => o.mine);
+  const cOweAll = sum(monthList().map(m => { const rs = mine().filter(r => r.month === m); return Math.max(sum(rs, r => r.acc) - sum(rs, r => r.rec), 0); }), x => x);
+  const total = cAcc + pMine;
+  $('aTotal').innerHTML = money(total) + '<small>₸</small>';
+  const goal = num(store.get('goal'));
+  $('aGoalBox').hidden = !goal;
+  if (goal) { const p = Math.max(0, Math.min(1, total / goal)); $('aGoalFill').style.width = (p * 100).toFixed(1) + '%';
+    $('aGoalL').textContent = 'Цель ' + money(goal) + ' ₸ · ' + Math.round(p * 100) + '%'; $('aGoalR').textContent = total >= goal ? 'выполнена' : 'осталось ' + money(goal - total) + ' ₸'; }
+  $('aKpi').innerHTML = `<div class="cell ${cOweAll + pOweAll < 1 ? 'ok' : 'owe'}"><span class="label">Мне должны</span><span class="v num">${money(cOweAll + pOweAll)} ₸</span><span class="s">за все месяцы</span></div>
+    <div class="cell"><span class="label">3D в работе</span><span class="v num">${money(pMine - pDone)} ₸</span><span class="s">ещё не выполнено</span></div>`;
+  $('aCoach').innerHTML = `<span class="t">Тренерство</span><span class="v num">${money(cAcc)} ₸</span><span class="m"><span>${cRows.filter(r => r.c === 'pay').length} оплат</span><span>${cOwe ? 'должны ' + money(cOwe) + ' ₸' : 'всё получено'}</span></span>`;
+  $('aPrint').innerHTML = `<span class="t">3D-печать</span><span class="v num">${money(pMine)} ₸</span><span class="m"><span>${pList.filter(o => !o.void).length} заказов</span><span>выполнено на ${money(pDone)} ₸</span></span>`;
+  const show = ms.slice(-12);
+  stacked($('aChart'), show.map(m => ({ k: m, a: sum(mine().filter(r => r.month === m), r => r.acc), b: mine3d(p3().filter(o => o.month === m)) })), aMonth, k => { aMonth = k; renderAll(); });
+}
+function stacked(el, data, sel, click) {
+  if (!data.some(d => d.a || d.b)) { el.innerHTML = '<div class="hint">Нет данных.</div>'; return; }
+  const W = 520, H = 190, top = 24, bottom = 28, n = data.length, gap = 6, bw = (W - gap * (n - 1)) / n;
+  const max = Math.max(...data.map(d => Math.max(d.a, 0) + Math.max(d.b, 0)), 1);
+  const hh = v => (H - top - bottom) * Math.max(v, 0) / max;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img"><line class="grid" x1="0" x2="${W}" y1="${H - bottom}" y2="${H - bottom}"/>`;
+  data.forEach((d, j) => {
+    const x = j * (bw + gap), ha = hh(d.a), hb = hh(d.b), base = H - bottom;
+    const op = d.k === sel ? 1 : .55;
+    s += `<rect x="${x}" y="${base - ha}" width="${bw}" height="${ha}" fill="var(--accent)" opacity="${op}"><title>Тренерство: ${money(d.a)} ₸</title></rect>`;
+    s += `<rect x="${x}" y="${base - ha - hb}" width="${bw}" height="${hb}" fill="var(--blue)" opacity="${op}"><title>3D: ${money(d.b)} ₸</title></rect>`;
+    s += `<rect data-k="${d.k}" x="${x}" y="0" width="${bw + gap}" height="${H}" fill="transparent" style="cursor:pointer"></rect>`;
+    s += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle">${MSHORT[+d.k.slice(5) - 1]}</text>`;
+    if (d.k === sel) s += `<text class="val" x="${Math.min(Math.max(x + bw / 2, 18), W - 18)}" y="${Math.max(base - ha - hb - 6, 12)}" text-anchor="middle">${Math.round((d.a + d.b) / 1000)}к</text>`;
+  });
+  el.innerHTML = s + '</svg>';
+  el.querySelectorAll('[data-k]').forEach(r => r.addEventListener('click', () => click(r.dataset.k)));
+}
+$('aPrev').onclick = () => { const ms = allMonths(), i = ms.indexOf(aMonth); if (i > 0) { aMonth = ms[i - 1]; renderAll(); } };
+$('aNext').onclick = () => { const ms = allMonths(), i = ms.indexOf(aMonth); if (i < ms.length - 1) { aMonth = ms[i + 1]; renderAll(); } };
+$('aCoach').onclick = () => { month = aMonth; go('home'); };
+$('aPrint').onclick = () => { pMonth = aMonth; go('p-orders'); };
+
+/* ---------- 3D: ЗАКАЗЫ ---------- */
+const FILTERS = [['all', 'Все'], ['active', 'В работе'], ['done', 'Готовы'], ['unpaid', 'Клиент не доплатил'], ['quiet', 'Тишина / возврат']];
+function renderOrders() {
+  const ms = months3d(), now = mk(new Date());
+  if (!pMonth || !ms.includes(pMonth)) pMonth = ms.includes(now) ? now : ms[ms.length - 1];
+  const i = ms.indexOf(pMonth);
+  $('pPrev').disabled = i <= 0; $('pNext').disabled = i >= ms.length - 1;
+  $('pName').innerHTML = mLabel(pMonth) + (pMonth === now ? '<small>текущий месяц</small>' : '');
+  $('pFilter').innerHTML = FILTERS.map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
+  $('pFilter').querySelectorAll('button').forEach(b => b.onclick = () => { pFilter = b.dataset.f; renderOrders(); });
+  if (!loaded3d) { $('pList').innerHTML = '<div class="empty" style="border:0">Загружаю заказы…</div>'; return; }
+  const list = p3().filter(o => o.month === pMonth);
+  const m = mine3d(list), done = mine3d(list.filter(o => o.done)), act = list.filter(o => ACTIVE.includes(o.status));
+  $('pMine').innerHTML = money(m) + '<small>₸</small>';
+  const grams = sum(list, o => o.grams), revenue = sum(list.filter(o => o.counts), o => o.price);
+  $('pKpi').innerHTML = [
+    ['Выполнено', money(done) + ' ₸', list.filter(o => o.done).length + ' заказов'],
+    ['В работе', money(m - done) + ' ₸', act.length + ' заказов'],
+    ['Выручка заказов', money(revenue) + ' ₸', 'всего по месяцу'],
+    ['Пластик', (grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸']
+  ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
+  const q = kidKey($('pSearch').value || '');
+  let show = q ? p3().filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no).includes(q)) : list;
+  if (pFilter === 'active') show = show.filter(o => ACTIVE.includes(o.status));
+  if (pFilter === 'done') show = show.filter(o => o.done);
+  if (pFilter === 'unpaid') show = show.filter(o => o.clientOwes > 0 && !o.void);
+  if (pFilter === 'quiet') show = show.filter(o => o.void || o.status === 'Тишина');
+  show = [...show].sort((a, b) => (b.date || 0) - (a.date || 0) || b.no - a.no);
+  $('pList').innerHTML = show.length ? show.map(ordLine).join('') : `<div class="empty" style="border:0">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+», чтобы добавить.'}</div>`;
+  $('pList').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
+  if (isWide()) renderTable();
+}
+
+/* ---------- ноутбук: таблица ---------- */
+const isWide = () => window.matchMedia('(min-width: 1000px)').matches;
+let tSort = { k: 'date', dir: -1 };
+const TCOLS = [
+  ['no', '№', o => o.no, 'r'], ['date', 'Дата', o => o.date ? o.date.getTime() : 0], ['client', 'Клиент', o => kidKey(o.client)], ['desc', 'Описание', o => kidKey(o.desc)],
+  ['status', 'Статус', o => STATUSES.findIndex(x => x[0] === o.status)], ['price', 'Цена', o => o.price || 0, 'r'], ['owes', 'Клиент должен', o => o.clientOwes, 'r'],
+  ['grams', 'Пластик, г', o => o.grams, 'r'], ['des', 'Дизайн', o => o.desT, 'r'], ['share', 'Доля', o => o.share, 'r'],
+  ['mine', 'Мне', o => o.counts ? o.mine : -1e12, 'r'], ['partner', 'Тимуру', o => o.counts ? o.partner : 0, 'r'], ['paid', 'Рассч.', o => o.paid ? 1 : 0]];
+function renderTable() {
+  const q = kidKey($('pSearch2').value || '');
+  let show = $('pAllMonths').checked || q ? p3() : p3().filter(o => o.month === pMonth);
+  if (q) show = show.filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no + ' ' + o.des).includes(q));
+  if (pFilter === 'active') show = show.filter(o => ACTIVE.includes(o.status));
+  if (pFilter === 'done') show = show.filter(o => o.done);
+  if (pFilter === 'unpaid') show = show.filter(o => o.clientOwes > 0 && !o.void);
+  if (pFilter === 'quiet') show = show.filter(o => o.void || o.status === 'Тишина');
+  const col = TCOLS.find(c => c[0] === tSort.k) || TCOLS[1];
+  show = [...show].sort((a, b) => { const x = col[2](a), y = col[2](b); return (x > y ? 1 : x < y ? -1 : 0) * tSort.dir || b.no - a.no; });
+  const head = '<thead><tr>' + TCOLS.map(c => `<th data-k="${c[0]}" class="${c[3] || ''} ${c[0] === tSort.k ? 'sorted' : ''}">${c[1]}${c[0] === tSort.k ? (tSort.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('') + '</tr></thead>';
+  const sel = editing ? editing.id : '';
+  const body = show.map(o => `<tr data-id="${esc(o.id)}" class="${o.id === sel ? 'sel' : ''}">
+    <td class="r">${o.no || ''}</td><td>${o.date ? o.date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: $('pAllMonths').checked || q ? '2-digit' : undefined }) : ''}</td>
+    <td class="cl">${esc(o.client || '—')}</td><td class="desc"><div>${esc(o.desc)}</div></td>
+    <td><select data-act="status" aria-label="Статус">${STATUSES.map(([s2]) => `<option${s2 === o.status ? ' selected' : ''}>${s2}</option>`).join('')}</select></td>
+    <td class="r">${o.price != null ? money(o.price) : '—'}</td><td class="r">${o.clientOwes ? money(o.clientOwes) : ''}</td>
+    <td class="r">${o.grams ? money(o.grams) + (o.parts.length > 1 ? ' <span class="kbd">(' + o.parts.length + ')</span>' : '') : ''}</td>
+    <td class="r">${o.desT ? money(o.desT) + (o.isMeDes ? ' <span class="kbd">я</span>' : '') : ''}</td>
+    <td class="r"><input class="pct" data-act="share" inputmode="decimal" value="${o.share}" aria-label="Доля, %"></td>
+    <td class="r mine ${o.mine < 0 ? 'neg' : ''}">${o.counts ? money(o.mine) : '—'}</td><td class="r">${o.counts ? money(o.partner) : '—'}</td>
+    <td>${o.handed ? `<input type="checkbox" data-act="paid" ${o.paid ? 'checked' : ''} aria-label="Рассчитались">` : ''}</td></tr>`).join('');
+  const cnt = show.filter(o => o.counts);
+  const foot = `<tfoot><tr><td colspan="5">Итого: ${show.length} заказов</td><td class="r">${money(sum(cnt, o => o.price))}</td><td class="r">${money(sum(cnt, o => o.clientOwes))}</td>
+    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td></td><td class="r mine">${money(sum(cnt, o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td></td></tr></tfoot>`;
+  $('pTable').innerHTML = head + '<tbody>' + (body || `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:24px">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+ Новый заказ».'}</td></tr>`) + '</tbody>' + foot;
+  $('pTable').querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { tSort = { k: th.dataset.k, dir: tSort.k === th.dataset.k ? -tSort.dir : (th.classList.contains('r') ? -1 : 1) }; renderTable(); });
+  $('pTable').querySelectorAll('tbody tr[data-id]').forEach(tr => tr.onclick = e => { if (e.target.closest('[data-act]')) return; openOrder(tr.dataset.id); renderTable(); });
+  $('pTable').querySelectorAll('[data-act]').forEach(el => el.addEventListener('change', () => inlineSave(el)));
+}
+async function inlineSave(el) {
+  const o = p3().find(x => x.id === el.closest('tr').dataset.id); if (!o) return;
+  const act = el.dataset.act, patch = {};
+  if (act === 'status') { patch['Статус'] = el.value; if (DONE.includes(el.value) && !o.fin) patch['Дата завершения'] = fmtDate(new Date()); }
+  if (act === 'share') { const v = num(el.value); if (!(v >= 0 && v <= 100)) { el.value = o.share; return; } patch['Доля Асета, %'] = String(v).replace('.', ','); }
+  if (act === 'paid') patch['Рассчитались'] = el.checked ? fmtDate(new Date()) : '';
+  el.disabled = true; $('status').textContent = 'Сохраняю №' + o.no + '…';
+  try { await saveOrderRow(o, patch); await refreshNow(); $('status').textContent = 'Заказ №' + o.no + ' сохранён'; }
+  catch (e) { el.disabled = false; showWriteError(e); }
+}
+$('pSearch2').addEventListener('input', renderTable);
+$('pAllMonths').addEventListener('change', renderTable);
+$('pNew').onclick = () => openOrder(null);
+window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); render(); });
+document.addEventListener('keydown', e => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''));
+  if (e.key === 'Escape') { ['ordBg', 'sheetBg', 'goalBg'].forEach(id => $(id).hidden = true); if (view === 'p-orders' && isWide()) renderTable(); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey || view !== 'p-orders' || !$('ordBg').hidden) return;
+  if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') { e.preventDefault(); openOrder(null); }
+  if (e.key === '/') { e.preventDefault(); (isWide() ? $('pSearch2') : $('pSearch')).focus(); }
+});
+function ordLine(o) {
+  const flags = [];
+  if (o.grams) flags.push((o.parts.length > 1 ? o.parts.length + ' печ. · ' : '') + money(o.grams) + ' г');
+  if (o.des) flags.push('дизайн: ' + esc(o.des));
+  if (o.clientOwes > 0 && o.pre > 0) flags.push('предоплата ' + money(o.pre));
+  if (o.handed) flags.push(o.paid ? '<span class="flag ok">рассчитались</span>' : '<span class="flag">к выплате</span>');
+  return `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no || '—'}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
+    <div class="pr num"><b>${o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts ? `<span>мне ${money(o.mine)}</span>` : ''}</div>
+    ${o.desc ? `<div class="ds">${esc(o.desc)}</div>` : ''}
+    <div class="mt"><span class="st ${ST_CLS[o.status] || ''}">${esc(o.status)}</span>${o.date ? '<span>' + o.date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + '</span>' : ''}${flags.map(f => '<span>' + f + '</span>').join('')}</div></button>`;
+}
+$('pPrev').onclick = () => { const ms = months3d(), i = ms.indexOf(pMonth); if (i > 0) { pMonth = ms[i - 1]; renderOrders(); } };
+$('pNext').onclick = () => { const ms = months3d(), i = ms.indexOf(pMonth); if (i < ms.length - 1) { pMonth = ms[i + 1]; renderOrders(); } };
+$('pSearch').addEventListener('input', renderOrders);
+
+/* ---------- 3D: СТАТИСТИКА ---------- */
+function renderPStats() {
+  const ys = [...new Set(months3d().map(m => m.slice(0, 4)))];
+  const opts = [['12', '12 месяцев'], ...ys.slice().reverse().map(y => [y, y]), ['all', 'Всё время']];
+  $('ppPeriod').innerHTML = opts.map(([v, t]) => `<button data-p="${v}" aria-pressed="${v === ppPeriod}">${t}</button>`).join('');
+  $('ppPeriod').querySelectorAll('button').forEach(b => b.onclick = () => { ppPeriod = b.dataset.p; renderPStats(); });
+  if (!loaded3d) return;
+  let ms = months3d(); ms = ppPeriod === 'all' ? ms : ppPeriod === '12' ? ms.slice(-12) : ms.filter(m => m.startsWith(ppPeriod));
+  const set = new Set(ms), list = p3().filter(o => set.has(o.month) && o.counts), now = mk(new Date());
+  const per = ms.map(m => ({ k: m, v: mine3d(p3().filter(o => o.month === m)), lab: MSHORT[+m.slice(5) - 1] }));
+  const full = per.filter(p => p.k !== now && p.v);
+  const avg = full.length ? sum(full, p => p.v) / full.length : 0;
+  const rev = sum(list, o => o.price);
+  $('ppKpi').innerHTML = [
+    ['Мой доход', money(sum(per, p => p.v)) + ' ₸', ms.length + ' мес.'],
+    ['В среднем в месяц', money(avg) + ' ₸', 'без текущего'],
+    ['Заказов', String(list.length), 'средний чек ' + money(list.length ? rev / list.length : 0) + ' ₸'],
+    ['Пластик', (sum(list, o => o.grams) / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸']
+  ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
+  barChart($('ppChart'), per, { avg, sel: pMonth, money: true, click: k => { pMonth = k; go('p-orders'); } });
+  const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(list.filter(o => o.isMeDes), o => o.desT), 'var(--accent)'],
+    ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
+  const mx = Math.max(...parts.map(x => Math.abs(x[1])), 1);
+  $('ppMix').innerHTML = parts.map(([t, v, c]) => `<div class="hb"><span>${t}</span><b class="num">${money(v)} ₸${rev ? ' · ' + Math.round(v / rev * 100) + '%' : ''}</b><div class="track"><i style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${c}"></i></div></div>`).join('') || '<div class="hint">Нет данных.</div>';
+  barChart($('ppPlastic'), ms.map(m => ({ k: m, v: Math.round(sum(p3().filter(o => o.month === m), o => o.grams) / 100) / 10, lab: MSHORT[+m.slice(5) - 1] })), { sel: pMonth });
+  const cl = new Map();
+  list.filter(o => o.client).forEach(o => { const k = kidKey(o.client); const c = cl.get(k) || { n: o.client, cnt: 0, rev: 0 }; c.cnt++; c.rev += o.price; cl.set(k, c); });
+  const top = [...cl.values()].sort((a, b) => b.rev - a.rev).slice(0, 8);
+  $('ppClients').innerHTML = '<tr><th>Клиент</th><th class="r">Заказов</th><th class="r">Сумма</th></tr>' + top.map(c => `<tr><td>${esc(c.n)}</td><td class="r num">${c.cnt}</td><td class="r num">${money(c.rev)} ₸</td></tr>`).join('');
+}
+
+/* ---------- 3D: ДИЗАЙНЕРЫ ---------- */
+function renderDes() {
+  const ms = months3d(), now = mk(new Date());
+  if (!dMonth || !ms.includes(dMonth)) dMonth = pMonth || (ms.includes(now) ? now : ms[ms.length - 1]);
+  const i = ms.indexOf(dMonth);
+  $('dPrev').disabled = i <= 0; $('dNext').disabled = i >= ms.length - 1;
+  $('dName').textContent = mLabel(dMonth);
+  if (!loaded3d) return;
+  const group = list => { const g = new Map(); list.filter(o => o.des && o.desT && !o.void).forEach(o => { const k = kidKey(o.des); const x = g.get(k) || { n: o.des, cnt: 0, t: 0, rub: 0, me: o.isMeDes }; x.cnt++; x.t += o.desT; if (o.cur === '₽') x.rub += o.desPay; g.set(k, x); }); return [...g.values()].sort((a, b) => b.t - a.t); };
+  const cur = group(p3().filter(o => o.month === dMonth));
+  $('dList').innerHTML = cur.length ? cur.map(x => `<div class="kid"><div class="n">${esc(x.n)}${x.me ? ' <span class="tag soon" style="background:var(--accent-soft);color:var(--accent)">это я</span>' : ''}</div><div class="num"><b>${money(x.t)} ₸</b></div>
+    <div class="m"><span>${x.cnt} ${x.cnt === 1 ? 'заказ' : x.cnt < 5 ? 'заказа' : 'заказов'}</span>${x.rub ? '<span>' + money(x.rub) + ' ₽</span>' : ''}</div></div>`).join('') : '<div class="empty" style="border:0">В этом месяце оплат дизайнерам нет.</div>';
+  const all = group(p3());
+  $('dAll').innerHTML = '<tr><th>Дизайнер</th><th class="r">Заказов</th><th class="r">Всего</th></tr>' + all.map(x => `<tr><td>${esc(x.n)}</td><td class="r num">${x.cnt}</td><td class="r num">${money(x.t)} ₸</td></tr>`).join('');
+}
+$('dPrev').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (i > 0) { dMonth = ms[i - 1]; renderDes(); } };
+$('dNext').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (i < ms.length - 1) { dMonth = ms[i + 1]; renderDes(); } };
+
+/* ---------- 3D: РАСЧЁТЫ ---------- */
+let psConfirm = null;
+function renderPSettle() {
+  if (!loaded3d) return;
+  const owed = p3().filter(o => o.counts && o.handed && !o.paid);
+  const ready = p3().filter(o => o.counts && o.status === 'Готов');
+  $('psKpi').innerHTML = `<div class="cell ${owed.length ? 'owe' : 'ok'}"><span class="label">К выплате</span><span class="v num">${money(sum(owed, o => o.mine))} ₸</span><span class="s">${owed.length} заказов передано</span></div>
+    <div class="cell"><span class="label">Готово, не передано</span><span class="v num">${money(sum(ready, o => o.mine))} ₸</span><span class="s">${ready.length} заказов</span></div>`;
+  const ms = [...new Set(owed.map(o => o.month))].sort().reverse();
+  $('psMonths').innerHTML = ms.length ? ms.map(m => { const l = owed.filter(o => o.month === m); const t = sum(l, o => o.mine);
+    return `<div class="mrow"><div><b>${mLabel(m)}</b></div><div class="num" style="color:var(--amber)"><b>${money(t)} ₸</b></div>
+      <div class="m">${l.map(o => '№' + o.no + ' ' + esc(o.client || '')).join(', ')}</div>
+      ${psConfirm === m ? `<div class="confirm"><span>Отметить ${l.length} заказов как рассчитанные?</span><button class="btn sm" data-yes="${m}">Да</button><button class="btn ghost sm" data-no="1">Нет</button></div>`
+        : `<div class="confirm"><button class="btn ghost sm" data-close="${m}">Рассчитались</button></div>`}</div>`; }).join('')
+    : '<div class="empty" style="border:0">Тимур рассчитался за все переданные заказы.</div>';
+  $('psMonths').querySelectorAll('[data-close]').forEach(b => b.onclick = () => { psConfirm = b.dataset.close; renderPSettle(); });
+  $('psMonths').querySelectorAll('[data-no]').forEach(b => b.onclick = () => { psConfirm = null; renderPSettle(); });
+  $('psMonths').querySelectorAll('[data-yes]').forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = 'Записываю…';
+    const today = fmtDate(new Date());
+    try { for (const o of owed.filter(x => x.month === b.dataset.yes)) await saveOrderRow(o, { 'Рассчитались': today });
+      psConfirm = null; await refreshNow(); $('status').textContent = mLabel(b.dataset.yes) + ': рассчитались.'; }
+    catch (e) { b.disabled = false; b.textContent = 'Да'; showWriteError(e); }
+  });
+  const cl = p3().filter(o => o.clientOwes > 0 && o.done);
+  $('psClients').innerHTML = cl.length ? cl.map(o => `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
+    <div class="pr num"><b>${money(o.clientOwes)} ₸</b><span style="color:var(--muted);font-weight:400">из ${money(o.price)}</span></div><div class="mt"><span class="st ${ST_CLS[o.status]}">${o.status}</span><span>${mLabel(o.month)}</span></div></button>`).join('')
+    : '<div class="empty" style="border:0">Все готовые заказы оплачены клиентами.</div>';
+  $('psClients').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
+}
+
+/* ---------- запись строки заказа ---------- */
+const fmtDate = d => String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
+const isoDate = d => d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : '';
+const fromIso = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}.${m[2]}.${m[1]}` : ''; };
+function rowFromOrder(o, patch) {
+  const r = C3.map((n, i) => String((o.raw && o.raw[i]) ?? ''));
+  Object.entries(patch || {}).forEach(([k, v]) => { r[C3.indexOf(k)] = v; });
+  ['Месяц', 'Пластик, г (части через +)'].forEach(k => { const i = C3.indexOf(k); if (r[i] && !String(r[i]).startsWith("'")) r[i] = "'" + r[i]; });
+  return r;
+}
+async function saveOrderRow(o, patch) {
+  const row = rowFromOrder(o, patch);
+  if (src === 'mcp') {
+    if (o.row) {
+      // проверяем, что строка на месте (таблицу могли поменять)
+      const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}` }, { cache: false });
+      const v = payloadValues(chk); if (!v || !v[0] || v[0][0] !== o.id) throw { code: 'moved', message: 'Таблица изменилась. Нажмите «Обновить» и повторите.' };
+      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:T${o.row}`, values: [row] });
+    }
+    return mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'3D-заказы'!A1", values: [row] });
+  }
+  const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ key: store.get('appKey'), action: 'save3d', row }) }).then(r => r.json()).catch(() => null);
+  if (!res) throw { code: 'server_unavailable' };
+  if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error };
+}
+
+/* ---------- карточка заказа ---------- */
+let oParts = [], oStatus = 'На согласовании';
+function openOrder(id) {
+  const o = id ? p3().find(x => x.id === id) : null;
+  editing = o;
+  const last = [...p3()].sort((a, b) => (b.date || 0) - (a.date || 0))[0];
+  $('oTitle').textContent = o ? `Заказ №${o.no}` : 'Новый заказ';
+  oStatus = o ? o.status : 'На согласовании';
+  oParts = o ? o.parts.slice() : [];
+  $('oClient').value = o ? o.client : '';
+  $('oDate').value = isoDate(o ? o.date : new Date());
+  $('oDesc').value = o ? o.desc : '';
+  $('oPrice').value = o && o.price != null ? o.price : '';
+  $('oPre').value = o && o.pre ? o.pre : '';
+  $('oPlPrice').value = o ? o.plPrice : (last ? last.plPrice : 5);
+  $('oShare').value = o ? o.share : (last ? last.share : 35);
+  $('oDes').value = o ? o.des : '';
+  $('oDesPay').value = o && o.desPay ? o.desPay : '';
+  ordCur = o && o.desPay ? o.cur : '₽';
+  $('oRate').value = o ? o.rate : (last ? last.rate : 5.5);
+  $('oFin').value = isoDate(o ? o.fin : null);
+  $('oPaid').checked = !!(o && o.paid);
+  $('oNote').value = o ? o.note : '';
+  $('oErr').hidden = true; $('oSaved').textContent = '';
+  $('oClients').innerHTML = [...new Set(p3().map(x => x.client).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join('');
+  $('oDesigners').innerHTML = [...new Set(['Асет', ...p3().map(x => x.des).filter(Boolean)])].map(c => `<option value="${esc(c)}">`).join('');
+  drawOrderForm();
+  $('ordBg').hidden = false;
+}
+function formOrder() {
+  const o = { parts: oParts, plPrice: num($('oPlPrice').value) || 0, desPay: num($('oDesPay').value), cur: ordCur, rate: num($('oRate').value) || 0,
+    des: $('oDes').value.trim(), price: $('oPrice').value.trim() === '' ? null : num($('oPrice').value), pre: num($('oPre').value),
+    share: num($('oShare').value), status: oStatus };
+  return calc3d(o);
+}
+function drawOrderForm() {
+  $('oStatus').innerHTML = STATUSES.map(([s]) => `<button type="button" data-s="${s}" aria-pressed="${s === oStatus}">${s}</button>`).join('');
+  $('oStatus').querySelectorAll('button').forEach(b => b.onclick = () => { oStatus = b.dataset.s; if (DONE.includes(oStatus) && !$('oFin').value) $('oFin').value = isoDate(new Date()); drawOrderForm(); });
+  $('oParts').innerHTML = oParts.length ? oParts.map((g, i) => `<span class="part">${money(g)} г<button type="button" data-i="${i}" aria-label="Убрать">×</button></span>`).join('') + `<span class="status">итого ${money(oParts.reduce((s, x) => s + x, 0))} г</span>` : '<span class="status">Пока ничего не напечатано</span>';
+  $('oParts').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { oParts.splice(+b.dataset.i, 1); drawOrderForm(); });
+  $('oCur').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === ordCur)));
+  $('oRateF').hidden = ordCur !== '₽';
+  const f = formOrder();
+  const line = (t, v, cls) => `<span>${t}</span><span class="r ${cls || ''}">${v}</span>`;
+  $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы посчитать доли.</span><span></span>' :
+    line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line(f.isMeDes ? 'Дизайн (мне)' : 'Дизайнеру', '−' + money(f.desT) + ' ₸') : '') +
+    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + line('Тимуру', money(f.partner) + ' ₸') +
+    (f.pre ? line('Клиент ещё должен', money(Math.max(f.price - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.mine) + ' ₸', 'tot');
+}
+['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate'].forEach(id => $(id).addEventListener('input', drawOrderForm));
+$('oCur').querySelectorAll('button').forEach(b => b.onclick = () => { ordCur = b.dataset.c; drawOrderForm(); });
+function addPart() { const v = num($('oPartIn').value); if (v > 0) { oParts.push(v); $('oPartIn').value = ''; drawOrderForm(); } $('oPartIn').focus(); }
+$('oPartAdd').onclick = addPart;
+$('oPartIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addPart(); } });
+$('oCancel').onclick = () => { $('ordBg').hidden = true; editing = null; if (view === 'p-orders' && isWide()) renderTable(); };
+$('ordBg').addEventListener('click', e => { if (e.target === $('ordBg')) $('ordBg').hidden = true; });
+$('ordForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const err = t => { $('oErr').textContent = t; $('oErr').hidden = false; };
+  if (!$('oClient').value.trim() && !$('oDesc').value.trim()) return err('Впишите клиента или что печатаем.');
+  if (!$('oDate').value) return err('Укажите дату заказа.');
+  if ($('oPartIn').value.trim()) addPart();
+  const o = editing, d = fromIso($('oDate').value), mon = $('oDate').value.slice(0, 7);
+  const no = o ? o.no : Math.max(0, ...p3().filter(x => x.month === mon).map(x => x.no)) + 1;
+  const n = v => { const x = String(v).trim(); return x === '' ? '' : String(num(x)).replace('.', ','); };
+  const patch = { 'ID': o ? o.id : 'p' + Math.random().toString(16).slice(2, 9), '№': String(no), 'Дата заказа': d, 'Месяц': mon,
+    'Дата завершения': fromIso($('oFin').value), 'Клиент': $('oClient').value.trim(), 'Описание': $('oDesc').value.trim(), 'Статус': oStatus,
+    'Цена заказа, ₸': n($('oPrice').value), 'Предоплата, ₸': n($('oPre').value), 'Пластик, г (части через +)': oParts.map(x => String(x).replace('.', ',')).join('+'),
+    'Цена пластика, ₸/г': n($('oPlPrice').value), 'Дизайнер': $('oDes').value.trim(), 'Оплата дизайнеру': n($('oDesPay').value),
+    'Валюта': $('oDesPay').value.trim() ? ordCur : '', 'Курс ₽→₸': n($('oRate').value), 'Доля Асета, %': n($('oShare').value),
+    'Рассчитались': $('oPaid').checked ? (o && o.paid ? o.paid : fmtDate(new Date())) : '', 'Примечание': $('oNote').value.trim(),
+    'Источник': o ? (o.src || 'Приложение') : 'Приложение' };
+  $('oSave').disabled = true; $('oSave').textContent = 'Сохраняю…';
+  try {
+    await saveOrderRow(o || { raw: [] }, patch);
+    $('ordBg').hidden = true; pMonth = mon;
+    await refreshNow();
+    $('status').textContent = (o ? 'Заказ №' + no + ' сохранён' : 'Заказ №' + no + ' добавлен');
+  } catch (er) { if (er && er.code === 'moved') err(er.message); else { const c = er && er.code; err(c === 'approval_required' || c === 'not_in_manifest' ? 'Нужно разрешить странице запись в таблицу. Нажмите «Сохранить» ещё раз и подтвердите доступ.' : c === 'server_unavailable' || c === 'upstream_error' ? 'Связь с таблицей прервалась. Нажмите «Обновить» и проверьте заказ, прежде чем сохранять снова.' : 'Не получилось сохранить: ' + ((er && er.message) || c || 'ошибка')); } }
+  finally { $('oSave').disabled = false; $('oSave').textContent = 'Сохранить'; }
+});
+
+function onData3d(result) {
+  const values = payloadValues(result);
+  if (!values) return;
+  loaded3d = true; ingest3d(values); render();
+}
 
 boot();
 </script>
