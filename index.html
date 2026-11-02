@@ -275,6 +275,61 @@ tr:last-child td { border-bottom: 0; }
 .kbd { font-size: 12px; color: var(--muted); }
 .kbd b { border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; font-weight: 600; }
 @media (min-width: 1000px) {
+  /* ноутбук: все разделы во всю ширину */
+  body.desk .wrap { max-width: 1320px; }
+  body.desk .sections { max-width: 560px; }
+  body.desk .tabbar nav { max-width: 720px; }
+  body.desk .view:not([hidden]) { display: grid !important; gap: 18px 24px; align-items: start; }
+  body.desk .view > * { min-width: 0; }
+  body.desk .chart svg { max-height: 300px; }
+  body.desk #sheetBg { justify-content: flex-end; align-items: stretch; background: rgba(10,15,12,.22); }
+  body.desk #sheetBg .sheet { max-width: 480px; height: 100%; max-height: none; border-radius: 0; box-shadow: -10px 0 30px rgba(0,0,0,.12); }
+  body.desk .fab { bottom: 28px; right: 28px; }
+
+  /* Общее */
+  body.desk #v-all { grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas: "nav nav nav" "hero hero coach" "hero hero print" "kpi kpi kpi" "chart chart chart"; }
+  #v-all > .monthnav { grid-area: nav; } #v-all > .hero { grid-area: hero; align-self: center; }
+  #aCoach { grid-area: coach; } #aPrint { grid-area: print; } #aKpi { grid-area: kpi; } #v-all > .chart { grid-area: chart; }
+  body.desk #aKpi { grid-template-columns: repeat(4, 1fr); }
+
+  /* Тренерство: месяц */
+  body.desk #v-home { grid-template-columns: minmax(0, 400px) minmax(0, 1fr); grid-template-rows: auto auto auto auto 1fr;
+    grid-template-areas: "nav nav" "hero sec" "kpi feed" "facts feed" ". feed"; }
+  #v-home > .monthnav { grid-area: nav; } #v-home > .hero { grid-area: hero; } #v-home > .grid2 { grid-area: kpi; }
+  #v-home > .facts { grid-area: facts; } #v-home > h2.sec { grid-area: sec; align-self: end; margin: 0; } #v-home > #feed { grid-area: feed; }
+
+  /* статистика (обе работы) */
+  body.desk #v-stats, body.desk #v-p-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #v-stats > .seg, #v-stats > #kpis, #v-p-stats > .seg, #v-p-stats > #ppKpi { grid-column: 1 / -1; }
+  body.desk #kpis, body.desk #ppKpi { grid-template-columns: repeat(4, 1fr); }
+
+  /* дети */
+  body.desk #v-kids { grid-template-columns: minmax(0, 1fr); }
+  body.desk #kidList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.desk #kidList .kid { border-top: 1px solid var(--line); }
+  body.desk #kidList .kid:nth-child(-n+2) { border-top: 0; }
+  body.desk #kidList .kid:nth-child(odd) { border-right: 1px solid var(--line); }
+  body.desk #renewList { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  /* расчёты тренерства */
+  body.desk #v-settle { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-areas: "kpi kpi" "swap sec" "swap debts" "swap note"; }
+  #v-settle > #settleKpi { grid-area: kpi; } #v-settle > .card { grid-area: swap; } #v-settle > h2.sec { grid-area: sec; margin: 0; }
+  #v-settle > #monthDebts { grid-area: debts; } #v-settle > .status { grid-area: note; }
+  body.desk #settleKpi { grid-template-columns: repeat(4, 1fr); }
+
+  /* 3D: дизайн и скан, расчёты */
+  body.desk #v-p-des { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #v-p-des > .monthnav, #v-p-des > .card, #v-p-des > .status { grid-column: 1 / -1; }
+  #v-p-des > h2.sec:nth-of-type(1) { grid-column: 1; grid-row: 2; } #dList { grid-column: 1; grid-row: 3; }
+  #v-p-des > h2.sec:nth-of-type(2) { grid-column: 2; grid-row: 2; } #dScan { grid-column: 2; grid-row: 3; }
+  body.desk #v-p-settle { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  #v-p-settle > #psKpi, #v-p-settle > .status { grid-column: 1 / -1; }
+  #psMonths { grid-column: 1; grid-row: 3 / span 2; } #v-p-settle > h2.sec { grid-column: 2; grid-row: 3; margin: 0; } #psClients { grid-column: 2; grid-row: 4; }
+
+  /* 3D: заказы — своя раскладка с таблицей */
+  body.desk #v-p-orders:not([hidden]) { display: flex !important; }
   body.wide .wrap { max-width: 1320px; }
   body.wide #pTableBox { display: flex; flex-direction: column; gap: 10px; }
   body.wide #pList, body.wide #pSearchRow { display: none; }
@@ -917,6 +972,7 @@ function go(v) {
   $('fab').hidden = !['home', 'p-orders'].includes(v) || !src;
   try { store.set('view', v); } catch (e) {}
   document.body.classList.toggle('wide', v === 'p-orders' && isWide());
+  document.body.classList.toggle('desk', isWide());
   window.scrollTo(0, 0);
   render();
 }
@@ -1147,7 +1203,7 @@ function calc3d(o) {
   o.dueSoon = o.open && !!o.plan && !o.overdue && (o.plan - t0) <= 2 * 864e5;
   o.late = o.handed && o.plan && o.fact && o.fact > o.plan;
   o.counts = !o.void && o.price != null;
-  o.clientOwes = o.price != null && !o.void ? Math.max(o.price + (o.scan || 0) - o.pre, 0) : 0;
+  o.clientOwes = o.price != null && !o.void && !o.handed ? Math.max(o.price + (o.scan || 0) - o.pre, 0) : 0;   // передан — значит клиент рассчитался
   return o;
 }
 const p3 = () => orders;
@@ -1314,7 +1370,7 @@ async function inlineSave(el) {
 $('pSearch2').addEventListener('input', renderTable);
 $('pAllMonths').addEventListener('change', renderTable);
 $('pNew').onclick = () => openOrder(null);
-window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); render(); });
+window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); document.body.classList.toggle('desk', isWide()); render(); });
 document.addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''));
   if (e.key === 'Escape') { ['ordBg', 'sheetBg', 'goalBg'].forEach(id => $(id).hidden = true); if (view === 'p-orders' && isWide()) renderTable(); return; }
@@ -1421,7 +1477,7 @@ function renderPSettle() {
       psConfirm = null; await refreshNow(); $('status').textContent = mLabel(b.dataset.yes) + ': рассчитались.'; }
     catch (e) { b.disabled = false; b.textContent = 'Да'; showWriteError(e); }
   });
-  const cl = p3().filter(o => o.clientOwes > 0 && (o.done || o.ready));
+  const cl = p3().filter(o => o.clientOwes > 0 && o.ready);
   $('psClients').innerHTML = cl.length ? cl.map(o => `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
     <div class="pr num"><b>${money(o.clientOwes)} ₸</b><span style="color:var(--muted);font-weight:400">из ${money(o.price)}</span></div><div class="mt"><span class="st ${ST_CLS[o.status]}">${o.status}</span><span>${mLabel(o.month)}</span></div></button>`).join('')
     : '<div class="empty" style="border:0">Все готовые заказы оплачены клиентами.</div>';
