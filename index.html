@@ -139,6 +139,9 @@ tr:last-child td { border-bottom: 0; }
 .seg { display: flex; gap: 6px; flex-wrap: wrap; }
 .seg button { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 7px 13px; cursor: pointer; font-size: 13.5px; }
 .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.prange { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13.5px; color: var(--muted); }
+.prange label { display: inline-flex; gap: 6px; align-items: center; }
+.prange input { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
 
 /* лента */
 .feed { display: flex; flex-direction: column; gap: 14px; }
@@ -416,15 +419,16 @@ h2.sec { font-size: 12px; letter-spacing: .1em; }
 
 @media (min-width: 1000px) {
   /* боковая панель */
-  body.desk::after { content: ""; position: fixed; inset: 0 auto 0 0; width: var(--side); background: var(--surface); border-right: 1px solid var(--line); z-index: 3; }
   body.desk .wrap { max-width: none; margin: 0 0 0 var(--side); padding: 28px 40px 48px; gap: 22px; }
   body.desk .wrap > * { width: 100%; max-width: 1240px; margin-inline: auto; }
-  body.desk .top { position: fixed; top: 0; left: 0; width: var(--side); z-index: 6; background: transparent; flex-direction: column; align-items: stretch; gap: 16px; padding: 24px 18px 0; }
+  body.desk .side { position: fixed; inset: 0 auto 0 0; width: var(--side); z-index: 6; display: flex; flex-direction: column; gap: 18px; padding: 20px 18px 24px;
+    background: var(--surface); border-right: 1px solid var(--line); overflow-y: auto; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  body.desk .top { position: static; background: transparent; flex-direction: column; align-items: stretch; gap: 14px; padding: 0 52px 0 0; }
   body.desk .top-actions { gap: 8px; }
   body.desk .brand-t span { white-space: normal; }
-  body.desk .sections { position: fixed; top: 150px; left: 18px; width: calc(var(--side) - 36px); z-index: 6; grid-template-columns: 1fr; gap: 2px; padding: 4px; max-width: none; }
+  body.desk .sections { grid-template-columns: 1fr; gap: 2px; padding: 4px; max-width: none; flex: none; }
   body.desk .sections button { text-align: left; padding: 11px 14px; font-size: 15px; }
-  body.desk .tabbar { position: fixed; top: 306px; left: 0; right: auto; bottom: auto; width: var(--side); background: transparent; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0 18px; z-index: 6; }
+  body.desk .tabbar { position: static; background: transparent; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0; }
   body.desk .tabbar::before { content: "Вкладки"; display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; padding: 0 14px 8px; }
   body.desk .tabbar nav { grid-template-columns: 1fr; gap: 2px; max-width: none; }
   body.desk .tabbar button { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 10px 14px; font-size: 14.5px; border-radius: 12px; }
@@ -440,7 +444,7 @@ h2.sec { font-size: 12px; letter-spacing: .1em; }
   body.desk .hero { padding: 26px 30px 28px; }
   body.desk .hero::after { font-size: 260px; bottom: -60px; right: 10px; }
   body.desk .cell { padding: 18px 20px; gap: 6px; }
-  body.desk .cell .v { font-size: 30px; font-weight: 700; }
+  body.desk .cell .v { font-size: clamp(22px, 2.1vw, 30px); font-weight: 700; white-space: nowrap; }
   body.desk .cell .s { font-size: 13.5px; }
   body.desk .jobcard { padding: 22px 24px; align-content: center; }
   body.desk .jobcard .t { font-size: 17px; }
@@ -459,19 +463,53 @@ h2.sec { font-size: 12px; letter-spacing: .1em; }
 /* кнопка бокового меню (только ноутбук) */
 .side-tg { display: none; }
 @media (min-width: 1000px) {
-  body.desk .side-tg { display: grid; place-items: center; position: fixed; z-index: 8; top: 20px; left: calc(var(--side) - 58px);
+  body.desk .side-tg { display: grid; place-items: center; position: fixed; z-index: 8; top: 20px; left: calc(var(--side) - 58px); transition: left .35s cubic-bezier(.2,.8,.2,1), background .2s;
     width: 40px; height: 40px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--fg); cursor: pointer; box-shadow: var(--shadow); }
   body.desk .side-tg svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-  body.desk .top { padding-right: 70px; }
   body.desk.side-off .side-tg { left: 20px; background: var(--surface); }
-  body.desk.side-off::after, body.desk.side-off .top, body.desk.side-off .sections, body.desk.side-off .tabbar { display: none; }
+  body.desk.side-off .side { transform: translateX(-100%); }
+  body.desk .wrap { transition: margin-left .35s cubic-bezier(.2,.8,.2,1), padding-left .35s; }
   body.desk.side-off .wrap { margin-left: 0; padding-left: 84px; }
   body.desk.side-off .wrap > * { max-width: 1480px; }
+}
+
+/* ===== анимации ===== */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes widen { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes sheetUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes sheetIn { from { transform: translateX(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fadeBg { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { 0% { transform: scale(.96); } 60% { transform: scale(1.02); } 100% { transform: none; } }
+.view.anim > * { animation: rise .5s cubic-bezier(.2,.8,.2,1) both; }
+.view.anim > *:nth-child(2) { animation-delay: .04s; } .view.anim > *:nth-child(3) { animation-delay: .08s; }
+.view.anim > *:nth-child(4) { animation-delay: .12s; } .view.anim > *:nth-child(5) { animation-delay: .16s; }
+.view.anim > *:nth-child(6) { animation-delay: .2s; } .view.anim > *:nth-child(n+7) { animation-delay: .24s; }
+.view.anim .grid2 > .cell, .view.anim .day { animation: rise .5s cubic-bezier(.2,.8,.2,1) both; }
+.view.anim .grid2 > .cell:nth-child(2) { animation-delay: .1s; } .view.anim .grid2 > .cell:nth-child(3) { animation-delay: .15s; }
+.view.anim .grid2 > .cell:nth-child(4) { animation-delay: .2s; } .view.anim .grid2 > .cell:nth-child(n+5) { animation-delay: .25s; }
+.view.anim .chart svg rect:not([fill="transparent"]):not([fill="none"]) { transform-box: fill-box; transform-origin: bottom; animation: grow .7s cubic-bezier(.2,.8,.2,1) .15s both; }
+.view.anim .hb .track i, .view.anim .split-bar > * , .view.anim .goal-bar i { transform-origin: left; animation: widen .8s cubic-bezier(.2,.8,.2,1) .2s both; }
+.sheet-bg:not([hidden]) { animation: fadeBg .2s ease both; }
+.sheet-bg:not([hidden]) .sheet { animation: sheetUp .32s cubic-bezier(.2,.8,.2,1) both; }
+.cell, .card, .jobcard, .op, .ord, .monthnav button, .icon-btn, .sections button, .tabbar button, .seg button, .chips button, .btn, .fab {
+  transition: transform .18s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease; }
+button.cell:hover, .jobcard:hover { transform: translateY(-2px); }
+.monthnav button:not(:disabled):hover, .icon-btn:hover { transform: translateY(-1px); }
+.btn:active, .fab:active, .seg button:active, .chips button:active, .icon-btn:active, .monthnav button:active { transform: scale(.96); }
+.fab:hover { transform: translateY(-2px); }
+.bump { animation: pop .45s ease; }
+@media (min-width: 1000px) {
+  body.desk .sheet-bg:not([hidden]) .sheet { animation-name: sheetIn; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 </style>
 </head>
 <body>
 
+<aside class="side" id="side" hidden></aside>
 <button class="side-tg" id="sideTg" type="button" aria-label="Скрыть меню" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 <div class="wrap">
   <header class="top">
@@ -883,7 +921,7 @@ function renderHome() {
   $('mname').innerHTML = (month ? mLabel(month) : '—') + (isNow ? '<small>текущий месяц</small>' : '');
   if (!loaded) return;
   const acc = sum(cur, r => r.acc), rec = sum(cur, r => r.rec), owe = acc - rec;
-  $('earned').innerHTML = money(acc) + '<small>₸</small>';
+  countTo($('earned'), acc, '<small>₸</small>');
   $('received').textContent = money(rec) + ' ₸';
   $('owe').textContent = (owe < -0.5 ? 'переплата ' + money(-owe) : money(Math.max(owe, 0))) + ' ₸';
   $('oweCell').className = 'cell ' + (Math.abs(owe) < 1 ? 'ok' : 'owe');
@@ -949,17 +987,34 @@ function renderFeed(cur) {
 }
 
 /* ---------- СТАТИСТИКА ---------- */
-function periodMonths() {
-  const ms = monthList();
-  if (period === 'all') return ms;
-  if (period === '12') return ms.slice(-12);
-  return ms.filter(m => m.startsWith(period));
+/* ---------- выбор периода для статистики ---------- */
+const PERIODS = [['cur', 'Этот месяц'], ['prev', 'Прошлый месяц'], ['3', '3 месяца'], ['6', '6 месяцев'], ['12', '12 месяцев']];
+const ranges = { coach: { from: '', to: '' }, print: { from: '', to: '' } };
+const shiftM = (k, n) => { const [y, m] = k.split('-').map(Number); return mk(new Date(y, m - 1 + n, 1)); };
+function monthsBetween(a, b) { if (a > b) [a, b] = [b, a]; const out = []; for (let k = a; k <= b && out.length < 240; k = shiftM(k, 1)) out.push(k); return out; }
+function pickMonths(p, ms, rg) {
+  const now = mk(new Date());
+  if (p === 'cur') return [now];
+  if (p === 'prev') return [shiftM(now, -1)];
+  if (/^\d{1,2}$/.test(p)) return monthsBetween(shiftM(now, -(+p - 1)), now);
+  if (p === 'all') return ms;
+  if (p === 'custom') return monthsBetween(rg.from || ms[0], rg.to || ms[ms.length - 1]);
+  return ms.filter(m => m.startsWith(p));
 }
+function periodUI(el, cur, ms, rg, onPick) {
+  const years = [...new Set(ms.map(m => m.slice(0, 4)))].reverse();
+  const opts = [...PERIODS, ...years.map(y => [y, y + ' год']), ['all', 'Всё время'], ['custom', 'Свой период']];
+  if (!rg.from) rg.from = shiftM(mk(new Date()), -2);
+  if (!rg.to) rg.to = mk(new Date());
+  el.innerHTML = opts.map(([v, t]) => `<button data-p="${v}" aria-pressed="${v === cur}">${t}</button>`).join('') +
+    (cur === 'custom' ? `<span class="prange"><label>с <input type="month" data-r="from" value="${rg.from}" min="${ms[0]}"></label><label>по <input type="month" data-r="to" value="${rg.to}" min="${ms[0]}"></label></span>` : '');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => onPick(b.dataset.p));
+  el.querySelectorAll('input[data-r]').forEach(i => i.onchange = () => { if (/^\d{4}-\d{2}$/.test(i.value)) { rg[i.dataset.r] = i.value; onPick('custom'); } });
+}
+const periodName = (p, ms) => p === 'cur' || p === 'prev' || ms.length === 1 ? mLabel(ms[0]) : ms.length ? mLabel(ms[0]).replace(/ \d{4}$/, ms[0].slice(0, 4) === ms[ms.length - 1].slice(0, 4) ? '' : ' ' + ms[0].slice(0, 4)) + ' — ' + mLabel(ms[ms.length - 1]) : '';
+function periodMonths() { return pickMonths(period, monthList(), ranges.coach); }
 function renderStats() {
-  const years = [...new Set(monthList().map(m => m.slice(0, 4)))];
-  const opts = [['12', '12 месяцев'], ...years.slice().reverse().map(y => [y, y]), ['all', 'Всё время']];
-  $('period').innerHTML = opts.map(([v, t]) => `<button data-p="${v}" aria-pressed="${v === period}">${t}</button>`).join('');
-  $('period').querySelectorAll('button').forEach(b => b.onclick = () => { period = b.dataset.p; renderStats(); });
+  periodUI($('period'), period, monthList(), ranges.coach, p => { period = p; renderStats(); playView(); });
   if (!loaded) return;
   const ms = periodMonths(), set = new Set(ms), now = mk(new Date());
   const list = mine().filter(r => set.has(r.month));
@@ -973,7 +1028,7 @@ function renderStats() {
   const prevKey = mk(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1));
   const prevV = sum(mine().filter(r => r.month === prevKey), r => r.acc);
   $('kpis').innerHTML = [
-    ['Всего за период', money(total) + ' ₸', ms.length + ' мес.'],
+    ['Всего за период', money(total) + ' ₸', periodName(period, ms)],
     ['В среднем в месяц', money(avg) + ' ₸', 'без текущего месяца'],
     ['Лучший месяц', best && best.v ? money(best.v) + ' ₸' : '—', best && best.v ? mLabel(best.m) : ''],
     ['Этот месяц', money(curV) + ' ₸', prevV ? (curV >= prevV ? '+' : '−') + Math.abs(Math.round((curV / prevV - 1) * 100)) + '% к прошлому' : '']
@@ -1127,6 +1182,7 @@ function render() {
 function go(v) {
   view = v;
   document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; s.style.display = s.hidden ? '' : 'flex'; });
+  playView();
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
   const sec = SECTION_OF(v); if (sec !== 'all') lastView[sec] = v;
   $('sections').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === sec)));
@@ -1134,7 +1190,7 @@ function go(v) {
   $('fab').hidden = !['home', 'p-orders'].includes(v) || !src;
   try { store.set('view', v); } catch (e) {}
   document.body.classList.toggle('wide', v === 'p-orders' && isWide());
-  document.body.classList.toggle('desk', isWide());
+  document.body.classList.toggle('desk', isWide()); placeSide();
   window.scrollTo(0, 0);
   render();
 }
@@ -1236,6 +1292,29 @@ async function boot() {
     { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
 }
 
+
+
+/* ---------- анимации ---------- */
+let animT = 0;
+function playView() {
+  const el = document.querySelector('.view:not([hidden])'); if (!el) return;
+  document.querySelectorAll('.view.anim').forEach(x => x.classList.remove('anim'));
+  void el.offsetWidth; el.classList.add('anim', 'anim-done');
+  clearTimeout(animT); animT = setTimeout(() => el.classList.remove('anim'), 1200);
+}
+const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Плавно «докручивает» число до нового значения. */
+function countTo(el, to, tail) {
+  if (!el) return;
+  const from = typeof el.__v === 'number' ? el.__v : 0;
+  el.__v = to;
+  if (reduceMotion() || Math.abs(to - from) < 1) { el.innerHTML = money(to) + tail; return; }
+  const t0 = performance.now(), dur = 900;
+  cancelAnimationFrame(el.__raf);
+  const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.innerHTML = money(from + (to - from) * e) + tail; if (k < 1) el.__raf = requestAnimationFrame(step); };
+  el.__raf = requestAnimationFrame(step);
+}
 
 /* ---------- боковое меню на ноутбуке ---------- */
 function setSide(open) {
@@ -1487,7 +1566,7 @@ function renderAll() {
   const tim = sum(pay, s => s.sum), timWait = sum(waitM, s => s.sum + s.wait);
   const readyN = p3().filter(o => o.ready).length, overN = p3().filter(o => o.overdue).length;
   const total = cAcc + pMine;
-  $('aTotal').innerHTML = money(total) + '<small>₸</small>';
+  countTo($('aTotal'), total, '<small>₸</small>');
   const pa = total > 0 ? Math.max(0, cAcc) / (Math.max(0, cAcc) + Math.max(0, pMine) || 1) * 100 : 0;
   $('aSplit').innerHTML = total > 0 ? `<div class="split-bar"><i style="width:${pa.toFixed(1)}%"></i><b style="width:${(100 - pa).toFixed(1)}%"></b></div>
     <div class="split-t"><span><i class="dot a"></i>Тренерство ${money(cAcc)} ₸</span><span><i class="dot b"></i>3D-печать ${money(pMine)} ₸</span></div>` : '';
@@ -1553,7 +1632,7 @@ function renderOrders() {
   if (!loaded3d) { $('pList').innerHTML = '<div class="empty" style="border:0">Загружаю заказы…</div>'; return; }
   const list = p3().filter(o => o.month === pMonth);
   const m = mine3d(list), done = mine3d(list.filter(o => o.done)), act = list.filter(o => ACTIVE.includes(o.status));
-  $('pMine').innerHTML = money(m) + '<small>₸</small>';
+  countTo($('pMine'), m, '<small>₸</small>');
   const grams = sum(list, o => o.grams), revenue = sum(list.filter(o => o.counts), o => o.price + o.scan);
   $('pKpi').innerHTML = [
     ['Передано клиентам', money(done) + ' ₸', list.filter(o => o.done).length + ' заказов'],
@@ -1624,8 +1703,15 @@ async function inlineSave(el) {
 $('pSearch2').addEventListener('input', renderTable);
 $('pAllMonths').addEventListener('change', renderTable);
 $('pNew').onclick = () => openOrder(null);
+const sideHome = { top: null, sections: null, tabbar: null };
+function placeSide() {
+  const side = $('side'), top = document.querySelector('.top'), secs = $('sections'), tb = $('tabbar'), wrap = document.querySelector('.wrap');
+  if (!sideHome.top) { sideHome.top = top.nextSibling; sideHome.tabbar = tb.nextSibling; }
+  if (isWide()) { if (top.parentNode !== side) { side.append(top, secs, tb); side.hidden = false; } }
+  else if (top.parentNode === side) { wrap.insertBefore(secs, wrap.firstChild); wrap.insertBefore(top, secs); document.body.insertBefore(tb, sideHome.tabbar); side.hidden = true; }
+}
 let rzT = 0; window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => render(), 200); });
-window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); document.body.classList.toggle('desk', isWide()); render(); });
+window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); document.body.classList.toggle('desk', isWide()); placeSide(); render(); });
 document.addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''));
   if (e.key === 'Escape') { ['ordBg', 'sheetBg', 'goalBg', 'opBg'].forEach(id => $(id).hidden = true); if (view === 'p-orders' && isWide()) renderTable(); return; }
@@ -1655,19 +1741,16 @@ $('pSearch').addEventListener('input', renderOrders);
 
 /* ---------- 3D: СТАТИСТИКА ---------- */
 function renderPStats() {
-  const ys = [...new Set(months3d().map(m => m.slice(0, 4)))];
-  const opts = [['12', '12 месяцев'], ...ys.slice().reverse().map(y => [y, y]), ['all', 'Всё время']];
-  $('ppPeriod').innerHTML = opts.map(([v, t]) => `<button data-p="${v}" aria-pressed="${v === ppPeriod}">${t}</button>`).join('');
-  $('ppPeriod').querySelectorAll('button').forEach(b => b.onclick = () => { ppPeriod = b.dataset.p; renderPStats(); });
+  periodUI($('ppPeriod'), ppPeriod, months3d(), ranges.print, p => { ppPeriod = p; renderPStats(); playView(); });
   if (!loaded3d) return;
-  let ms = months3d(); ms = ppPeriod === 'all' ? ms : ppPeriod === '12' ? ms.slice(-12) : ms.filter(m => m.startsWith(ppPeriod));
+  const ms = pickMonths(ppPeriod, months3d(), ranges.print);
   const set = new Set(ms), list = p3().filter(o => set.has(o.month) && o.counts), now = mk(new Date());
   const per = ms.map(m => ({ k: m, v: mine3d(p3().filter(o => o.month === m)), lab: MSHORT[+m.slice(5) - 1] }));
   const full = per.filter(p => p.k !== now && p.v);
   const avg = full.length ? sum(full, p => p.v) / full.length : 0;
   const rev = sum(list, o => o.price + o.scan);
   $('ppKpi').innerHTML = [
-    ['Мой доход', money(sum(per, p => p.v)) + ' ₸', ms.length + ' мес.'],
+    ['Мой доход', money(sum(per, p => p.v)) + ' ₸', periodName(ppPeriod, ms)],
     ['В среднем в месяц', money(avg) + ' ₸', 'без текущего'],
     ['Заказов', String(list.length), 'средний чек ' + money(list.length ? rev / list.length : 0) + ' ₸'],
     ['Пластик', (sum(list, o => o.grams) / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸']
