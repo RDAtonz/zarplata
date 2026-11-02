@@ -136,6 +136,8 @@ tr:last-child td { border-bottom: 0; }
 .ops { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .op { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 11px 14px; }
 .op + .op { border-top: 1px solid var(--line); }
+.op[data-op] { cursor: pointer; }
+.op[data-op]:hover { background: var(--accent-soft); }
 .op .who { font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
 .op .amt { font-weight: 600; text-align: right; white-space: nowrap; }
 .op .amt.neg { color: var(--red); }
@@ -282,6 +284,22 @@ tr:last-child td { border-bottom: 0; }
   body.desk .view:not([hidden]) { display: grid !important; gap: 18px 24px; align-items: start; }
   body.desk .view > * { min-width: 0; }
   body.desk .chart svg { max-height: 300px; }
+  body.desk #opBg { justify-content: flex-end; align-items: stretch; background: rgba(10,15,12,.22); }
+  body.desk #opBg .sheet { max-width: 480px; height: 100%; max-height: none; border-radius: 0; box-shadow: -10px 0 30px rgba(0,0,0,.12); }
+  /* крупнее цифры на большом экране */
+  body.desk .big { font-size: 64px; }
+  body.desk .cell { padding: 16px 18px; gap: 6px; }
+  body.desk .cell .v { font-family: var(--f-display); font-size: 30px; font-weight: 700; letter-spacing: -.01em; }
+  body.desk .cell .s { font-size: 13.5px; }
+  body.desk .jobcard { padding: 20px 22px; align-content: center; }
+  body.desk .jobcard .t { font-size: 18px; }
+  body.desk .jobcard .v { font-size: 36px; }
+  body.desk .jobcard .m { font-size: 14px; }
+  body.desk .op .who { font-size: 15.5px; }
+  body.desk .op .amt { font-size: 17px; }
+  body.desk #v-all > .hero { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 26px 28px; height: 100%; justify-content: center; align-self: stretch; }
+  body.desk #v-all > .hero .big { font-size: 84px; }
+  body.desk #v-home > .hero .big, body.desk #v-p-orders .hero .big { font-size: 72px; }
   body.desk #sheetBg { justify-content: flex-end; align-items: stretch; background: rgba(10,15,12,.22); }
   body.desk #sheetBg .sheet { max-width: 480px; height: 100%; max-height: none; border-radius: 0; box-shadow: -10px 0 30px rgba(0,0,0,.12); }
   body.desk .fab { bottom: 28px; right: 28px; }
@@ -289,7 +307,7 @@ tr:last-child td { border-bottom: 0; }
   /* Общее */
   body.desk #v-all { grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas: "nav nav nav" "hero hero coach" "hero hero print" "kpi kpi kpi" "chart chart chart"; }
-  #v-all > .monthnav { grid-area: nav; } #v-all > .hero { grid-area: hero; align-self: center; }
+  #v-all > .monthnav { grid-area: nav; } #v-all > .hero { grid-area: hero; }
   #aCoach { grid-area: coach; } #aPrint { grid-area: print; } #aKpi { grid-area: kpi; } #v-all > .chart { grid-area: chart; }
   body.desk #aKpi { grid-template-columns: repeat(4, 1fr); }
 
@@ -613,6 +631,33 @@ tr:last-child td { border-bottom: 0; }
 </div>
 <datalist id="oClients"></datalist><datalist id="oDesigners"></datalist><datalist id="oScanners"></datalist>
 
+<div class="sheet-bg" id="opBg" hidden>
+  <form class="sheet" id="opForm" autocomplete="off">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Изменить запись</h2><span class="status" id="opSrc"></span></div>
+    <div class="row2">
+      <div class="field"><label for="eType">Тип</label><select id="eType"></select></div>
+      <div class="field"><label for="eDate">Дата</label><input id="eDate" type="date"></div>
+    </div>
+    <div class="field"><label for="eKids">Имя ребёнка</label><input id="eKids" list="eKidsList" placeholder="Необязательно"></div>
+    <div class="field"><label for="eDesc">Описание</label><input id="eDesc" placeholder="Необязательно"></div>
+    <div class="row2">
+      <div class="field"><label for="eAcc">Заработано (начислено), ₸</label><input id="eAcc" inputmode="decimal" placeholder="0"></div>
+      <div class="field"><label for="eRec">Получено на руки, ₸</label><input id="eRec" inputmode="decimal" placeholder="0"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="eMonth">В какой месяц считать</label><input id="eMonth" type="month"></div>
+      <div class="field" style="justify-content:flex-end"><span class="status" style="text-align:left" id="eHint"></span></div>
+    </div>
+    <div class="err" id="eErr" hidden></div>
+    <div class="row2">
+      <button type="button" class="btn ghost" id="eCancel">Закрыть</button>
+      <button type="submit" class="btn" id="eSave">Сохранить</button>
+    </div>
+    <div class="confirm" id="eDelBox" style="justify-content:center"><button type="button" class="btn ghost sm" id="eDel" style="color:var(--red)">Удалить запись</button></div>
+  </form>
+</div>
+<datalist id="eKidsList"></datalist>
+
 <div class="sheet-bg" id="goalBg" hidden>
   <form class="sheet" id="goalForm" autocomplete="off">
     <h2>Цель на месяц</h2>
@@ -678,20 +723,22 @@ function ingest(values) {
   const I = { id: ix('ID'), date: ix('Дата'), month: ix('Месяц'), work: ix('Работа'), type: ix('Тип'), kids: ix('Дети'),
     desc: ix('Описание'), acc: ix('Начислено'), rec: ix('Получено'), src: ix('Источник') };
   const g = (r, k) => I[k] >= 0 ? (r[I[k]] ?? '') : '';
-  rows = values.slice(1).map(r => {
+  opsHead = head;
+  rows = values.slice(1).map((r, i) => {
     const d = parseDate(g(r, 'date'));
     let m = String(g(r, 'month')).replace(/^'/, '').trim();
     if (!/^\d{4}-\d{2}$/.test(m)) m = d ? mk(d) : '';
     const type = String(g(r, 'type')).trim();
     return { id: String(g(r, 'id')), date: d, month: m, work: String(g(r, 'work')).trim() || 'Работа 1', type, c: cat(type),
       kids: String(g(r, 'kids')).trim(), desc: String(g(r, 'desc')).trim(), acc: num(g(r, 'acc')), rec: num(g(r, 'rec')),
-      src: String(g(r, 'src')).trim() };
+      src: String(g(r, 'src')).trim(), row: i + 2, raw: r };
   }).filter(r => r.month && (r.type || r.acc || r.rec));
   works = [...new Set(rows.map(r => r.work))];
   if (!work || !works.includes(work)) work = works[0] || null;
   const ms = monthList(); const now = mk(new Date());
   if (!month || !ms.includes(month)) month = ms.includes(now) ? now : ms[ms.length - 1];
 }
+let opsHead = [];
 const mine = () => rows.filter(r => !work || r.work === work);
 function monthList() { const s = new Set(mine().map(r => r.month)); s.add(mk(new Date())); return [...s].sort(); }
 
@@ -772,19 +819,20 @@ function renderFeed(cur) {
       const isRec = r.acc === 0 && r.rec !== 0;
       const main = isRec ? r.rec : r.acc;
       if (isRec && r.c === 'recv' && r.src === 'История') {
-        html += `<div class="op small"><div class="who">Получил перевод</div><div class="amt num rec">↓ ${money(main)} ₸</div></div>`;
+        html += `<div class="op small" data-op="${esc(r.id)}"><div class="who">Получил перевод</div><div class="amt num rec">↓ ${money(main)} ₸</div></div>`;
         return;
       }
       let who = r.kids || (r.c === 'recv' ? (/налич/i.test(r.desc) ? 'Получил наличными' : 'Получил деньги') : r.c === 'pay' ? 'Оплата без имени' : r.desc || CAT_LABEL[r.c]);
       if (r.c === 'swap' && /^дети /i.test(who)) who = who.replace(/^дети /i, 'Дети ');
       const desc = r.desc && r.desc !== who ? r.desc : '';
-      html += `<div class="op"><div class="who">${esc(who.length > 160 ? who.slice(0, 160) + '…' : who)}</div>
+      html += `<div class="op" data-op="${esc(r.id)}"><div class="who">${esc(who.length > 160 ? who.slice(0, 160) + '…' : who)}</div>
         <div class="amt num ${main < 0 ? 'neg' : ''} ${isRec ? 'rec' : ''}">${main ? (isRec ? '↓ ' + money(main) : signed(main)) + ' ₸' : ''}</div>
         <div class="meta"><span class="pill c-${r.c}">${CAT_LABEL[r.c]}</span>${desc ? `<span class="desc">${esc(desc.length > 140 ? desc.slice(0, 140) + '…' : desc)}</span>` : ''}</div></div>`;
     });
     html += '</div></div>';
   });
   feed.innerHTML = html;
+  feed.querySelectorAll('[data-op]').forEach(el => el.onclick = () => openOp(el.dataset.op));
 }
 
 /* ---------- СТАТИСТИКА ---------- */
@@ -1142,6 +1190,83 @@ $('addForm').addEventListener('submit', async e => {
   finally { $('fSave').disabled = false; $('fSave').textContent = 'Записать'; }
 });
 
+
+/* ---------- изменение записи тренерства ---------- */
+const OP_TYPES = ['Оплата', 'Возврат', 'Чужой ребёнок', 'Расчёт', 'Корректировка'];
+let opEdit = null, opDelAsk = false;
+function openOp(id) {
+  const r = rows.find(x => x.id === id); if (!r || !id) return;
+  opEdit = r; opDelAsk = false;
+  const types = [...new Set([...OP_TYPES, r.type].filter(Boolean))];
+  $('eType').innerHTML = types.map(t => `<option${t === r.type ? ' selected' : ''}>${esc(t)}</option>`).join('');
+  $('eDate').value = isoDate(r.date);
+  $('eKids').value = r.kids; $('eDesc').value = r.desc;
+  $('eAcc').value = r.acc ? String(r.acc).replace('.', ',') : ''; $('eRec').value = r.rec ? String(r.rec).replace('.', ',') : '';
+  $('eMonth').value = r.month;
+  $('opSrc').textContent = r.src ? 'источник: ' + r.src.toLowerCase() : '';
+  $('eKidsList').innerHTML = [...new Set(rows.map(x => x.kids).filter(k => k && k.length < 40))].slice(-300).map(k => `<option value="${esc(k)}">`).join('');
+  $('eErr').hidden = true; drawOpDel(); opHint();
+  $('opBg').hidden = false;
+}
+function opHint() {
+  const a = num($('eAcc').value), b = num($('eRec').value), t = $('eType').value;
+  $('eHint').textContent = t === 'Оплата' && a && !b ? 'Без «получено» оплата считается долгом тренера.' : a < 0 ? 'Минус — вычитается из зарплаты.' : '';
+}
+['eAcc', 'eRec', 'eType'].forEach(id => $(id).addEventListener('input', opHint));
+$('eDate').addEventListener('change', () => { const was = opEdit && opEdit.date ? mk(opEdit.date) : ''; if (!$('eMonth').value || $('eMonth').value === was) $('eMonth').value = $('eDate').value.slice(0, 7); });
+function drawOpDel() {
+  $('eDelBox').innerHTML = opDelAsk ? '<span>Удалить запись насовсем?</span><button type="button" class="btn sm" id="eDelYes" style="background:var(--red);border-color:var(--red)">Удалить</button><button type="button" class="btn ghost sm" id="eDelNo">Нет</button>'
+    : '<button type="button" class="btn ghost sm" id="eDel" style="color:var(--red)">Удалить запись</button>';
+  if (opDelAsk) { $('eDelYes').onclick = () => saveOp(true); $('eDelNo').onclick = () => { opDelAsk = false; drawOpDel(); }; }
+  else $('eDel').onclick = () => { opDelAsk = true; drawOpDel(); };
+}
+$('eCancel').onclick = () => { $('opBg').hidden = true; opEdit = null; };
+$('opBg').addEventListener('click', e => { if (e.target === $('opBg')) { $('opBg').hidden = true; opEdit = null; } });
+$('opForm').addEventListener('submit', e => { e.preventDefault(); saveOp(false); });
+async function saveOp(del) {
+  const r = opEdit; if (!r) return;
+  const err = t => { $('eErr').textContent = t; $('eErr').hidden = false; };
+  const head = opsHead, ix = n => head.indexOf(n);
+  const row = head.map((h, i) => String((r.raw && r.raw[i]) ?? ''));
+  if (!del) {
+    if (!$('eDate').value) return err('Укажите дату.');
+    if (!/^\d{4}-\d{2}$/.test($('eMonth').value)) return err('Укажите месяц.');
+    const acc = $('eAcc').value.trim() === '' ? 0 : num($('eAcc').value), rec = $('eRec').value.trim() === '' ? 0 : num($('eRec').value);
+    if (!isFinite(acc) || !isFinite(rec)) return err('Суммы — числами, например 12250.');
+    const [y, m, d] = $('eDate').value.split('-');
+    const tm = String(r.raw[ix('Дата')] || '').match(/(\d{1,2}):(\d{2})/);
+    const set = (n, v) => { if (ix(n) >= 0) row[ix(n)] = v; };
+    set('Дата', `${d}.${m}.${y} ${tm ? tm[1].padStart(2, '0') + ':' + tm[2] : '12:00'}`);
+    set('Месяц', "'" + $('eMonth').value); set('Тип', $('eType').value);
+    set('Дети', $('eKids').value.trim()); set('Описание', $('eDesc').value.trim());
+    set('Начислено', acc); set('Получено', rec);
+    ['Квитанция'].forEach(n => { if (ix(n) >= 0 && row[ix(n)] && !row[ix(n)].startsWith("'")) row[ix(n)] = "'" + row[ix(n)]; });
+  }
+  const btn = del ? $('eDelYes') : $('eSave'); btn.disabled = true; const t0 = btn.textContent; btn.textContent = del ? 'Удаляю…' : 'Сохраняю…';
+  try {
+    if (src === 'mcp') {
+      const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'Операции'!A${r.row}` }, { cache: false });
+      const v = payloadValues(chk); if (!v || !v[0] || String(v[0][0]) !== r.id) throw { code: 'moved', message: 'Таблица изменилась. Нажмите «Обновить» и откройте запись снова.' };
+      const last = String.fromCharCode(64 + head.length);
+      await mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Операции'!A${r.row}:${last}${r.row}`, values: [del ? head.map(() => '') : row] });
+    } else {
+      const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ key: store.get('appKey'), action: 'saveop', id: r.id, del, row }) }).then(x => x.json()).catch(() => null);
+      if (!res) throw { code: 'server_unavailable' };
+      if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error === 'not_found' ? 'Запись не нашлась — нажмите «Обновить».' : res.error };
+    }
+    $('opBg').hidden = true; opEdit = null;
+    if (!del) month = $('eMonth').value;
+    await refreshNow();
+    $('status').textContent = del ? 'Запись удалена' : 'Запись сохранена';
+  } catch (er) {
+    btn.disabled = false; btn.textContent = t0;
+    const c = er && er.code;
+    err(c === 'moved' || (er && er.message && c === 'tool_error') ? er.message : c === 'approval_required' || c === 'not_in_manifest' ? 'Нужно разрешить странице запись в таблицу. Нажмите ещё раз и подтвердите доступ.'
+      : c === 'server_unavailable' || c === 'upstream_error' ? 'Связь с таблицей прервалась. Нажмите «Обновить» и проверьте запись.' : 'Не получилось сохранить: ' + ((er && er.message) || c || 'ошибка'));
+  }
+}
+
 /* =====================  РАЗДЕЛЫ И 3D-ПЕЧАТЬ  ===================== */
 const RANGE3D = "'3D-заказы'!A1:W";
 const C3 = ['ID', '№', 'Дата заказа', 'Месяц', 'Плановая дата', 'Клиент', 'Описание', 'Статус', 'Цена заказа, ₸', 'Предоплата, ₸',
@@ -1373,7 +1498,7 @@ $('pNew').onclick = () => openOrder(null);
 window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); document.body.classList.toggle('desk', isWide()); render(); });
 document.addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''));
-  if (e.key === 'Escape') { ['ordBg', 'sheetBg', 'goalBg'].forEach(id => $(id).hidden = true); if (view === 'p-orders' && isWide()) renderTable(); return; }
+  if (e.key === 'Escape') { ['ordBg', 'sheetBg', 'goalBg', 'opBg'].forEach(id => $(id).hidden = true); if (view === 'p-orders' && isWide()) renderTable(); return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey || view !== 'p-orders' || !$('ordBg').hidden) return;
   if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') { e.preventDefault(); openOrder(null); }
   if (e.key === '/') { e.preventDefault(); (isWide() ? $('pSearch2') : $('pSearch')).focus(); }
