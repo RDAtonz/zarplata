@@ -455,10 +455,24 @@ h2.sec { font-size: 12px; letter-spacing: .1em; }
   body.desk .mname { flex: none; text-align: left; font-size: 26px; order: -1; margin-right: auto; }
   body.desk .mname small { display: inline; margin-left: 10px; font-size: 13px; font-family: var(--f-body); }
 }
+
+/* кнопка бокового меню (только ноутбук) */
+.side-tg { display: none; }
+@media (min-width: 1000px) {
+  body.desk .side-tg { display: grid; place-items: center; position: fixed; z-index: 8; top: 20px; left: calc(var(--side) - 58px);
+    width: 40px; height: 40px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--fg); cursor: pointer; box-shadow: var(--shadow); }
+  body.desk .side-tg svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+  body.desk .top { padding-right: 70px; }
+  body.desk.side-off .side-tg { left: 20px; background: var(--surface); }
+  body.desk.side-off::after, body.desk.side-off .top, body.desk.side-off .sections, body.desk.side-off .tabbar { display: none; }
+  body.desk.side-off .wrap { margin-left: 0; padding-left: 84px; }
+  body.desk.side-off .wrap > * { max-width: 1480px; }
+}
 </style>
 </head>
 <body>
 
+<button class="side-tg" id="sideTg" type="button" aria-label="Скрыть меню" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -1221,6 +1235,17 @@ async function boot() {
   mcp.watchTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE3D }, ev => { if (ev.type === 'data') onData3d(ev.result); },
     { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
 }
+
+
+/* ---------- боковое меню на ноутбуке ---------- */
+function setSide(open) {
+  document.body.classList.toggle('side-off', !open);
+  $('sideTg').setAttribute('aria-expanded', String(open));
+  $('sideTg').setAttribute('aria-label', open ? 'Скрыть меню' : 'Показать меню');
+  try { store.set('sideOff', open ? null : '1'); } catch (e) {}
+}
+$('sideTg').onclick = () => { setSide(document.body.classList.contains('side-off')); render(); };
+try { if (store.get('sideOff')) setSide(false); } catch (e) {}
 
 /* ---------- навигация по месяцам ---------- */
 $('prev').onclick = () => { const ms = monthList(), i = ms.indexOf(month); if (i > 0) { month = ms[i - 1]; renderHome(); } };
