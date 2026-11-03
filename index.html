@@ -505,6 +505,48 @@ button.cell:hover, .jobcard:hover { transform: translateY(-2px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* прогноз в итоге месяца */
+.fc { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 6px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.14); color: var(--hero-dim); font-size: 13.5px; }
+.fc b { color: var(--hero-fg); font-family: var(--f-display); font-size: 20px; font-weight: 600; }
+.fc-s { flex-basis: 100%; font-size: 12.5px; }
+/* календарь сроков */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-h { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 0 6px 2px; }
+.cal-d { min-height: 92px; background: var(--surface-2); border-radius: 12px; padding: 6px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cal-d.past { opacity: .78; }
+.cal-d.today { box-shadow: inset 0 0 0 2px var(--accent); }
+.cal-n { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
+.cal-n span { display: none; color: var(--muted); }
+.cal-n em { font-style: normal; font-size: 11px; color: var(--accent); font-weight: 600; }
+.cal-o { border: 0; text-align: left; cursor: pointer; font: inherit; font-size: 12px; line-height: 1.25; padding: 4px 6px; border-radius: 7px; background: var(--blue-soft); color: var(--blue);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cal-o .no { opacity: .7; }
+.cal-o.k-late { background: var(--red-soft); color: var(--red); font-weight: 600; }
+.cal-o.k-ready { background: var(--accent-soft); color: var(--accent); }
+.cal-o.k-done { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); text-decoration: line-through; text-decoration-color: var(--line); }
+.cal-o:hover { filter: brightness(.95); }
+.cal-card .legend { margin-top: 4px; }
+@media (max-width: 999px) {
+  /* телефон: список по дням вместо сетки */
+  .cal { grid-template-columns: 1fr; gap: 8px; }
+  .cal-h, .cal-pad, .cal-d.empty { display: none; }
+  .cal-d { min-height: 0; padding: 10px 12px; }
+  .cal-n span { display: inline; }
+  .cal-o { white-space: normal; font-size: 13.5px; padding: 7px 10px; }
+}
+@media (max-width: 999px) { #navPrint:not([hidden]) { grid-template-columns: repeat(5, 1fr); } }
+/* прибыльность */
+.prof-row { cursor: pointer; }
+.prof-row:hover td, .prof-row.sel td { background: var(--surface-2); }
+.pbar { display: inline-block; width: 46px; height: 6px; border-radius: 99px; background: var(--line); margin-right: 8px; vertical-align: middle; overflow: hidden; }
+.pbar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+td.mine { color: var(--accent); font-weight: 600; }
+@media (min-width: 1000px) {
+  #v-p-stats > .prof-card { grid-column: 1 / -1; }
+  body.desk #v-p-cal { grid-template-columns: minmax(0, 1fr); }
+  body.desk #cKpi { grid-template-columns: repeat(4, 1fr); }
+}
 </style>
 </head>
 <body>
@@ -518,7 +560,7 @@ button.cell:hover, .jobcard:hover { transform: translateY(-2px); }
       <div class="brand-t"><b id="hello">Моя зарплата</b><span id="sub">Загружаю…</span></div>
     </div>
     <div class="top-actions">
-      <button class="icon-btn" id="goalBtn" aria-label="Цель на месяц"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></button>
+      <button class="icon-btn" id="goalBtn" aria-label="Календарь сроков заказов" title="Сроки заказов"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button>
       <button class="icon-btn" id="refresh" aria-label="Обновить данные"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
     </div>
   </header>
@@ -542,6 +584,7 @@ button.cell:hover, .jobcard:hover { transform: translateY(-2px); }
       <div class="label">Зарплата за месяц, обе работы</div>
       <div class="big num" id="aTotal">—</div>
       <div class="split" id="aSplit"></div>
+      <div class="fc" id="aFc" hidden></div>
       <div class="goal" id="aGoalBox" hidden>
         <div class="goal-bar"><i id="aGoalFill" style="width:0"></i></div>
         <div class="goal-t"><span id="aGoalL"></span><span id="aGoalR"></span></div>
@@ -642,8 +685,23 @@ button.cell:hover, .jobcard:hover { transform: translateY(-2px); }
     <div class="grid2" id="ppKpi"></div>
     <div class="card chart"><h3>Мой доход по месяцам</h3><div class="hint">Пунктир — среднее. Нажмите на столбик, чтобы открыть заказы месяца.</div><div id="ppChart"></div></div>
     <div class="card"><h3>Куда уходят деньги заказов</h3><div class="hbars" id="ppMix"></div></div>
+    <div class="card prof-card"><h3>Прибыльность по типам заказов</h3><div class="hint">Тип определяется по описанию заказа. «₸ за грамм» — сколько стоит грамм пластика для клиента и сколько с него получаю я. Нажмите на тип, чтобы увидеть заказы.</div><div class="tbl-wrap"><table id="ppProf"></table></div><div id="ppProfList"></div></div>
     <div class="card chart"><h3>Пластик по месяцам, кг</h3><div id="ppPlastic"></div></div>
     <div class="card"><h3>Лучшие клиенты</h3><div class="tbl-wrap"><table id="ppClients"></table></div></div>
+  </section>
+
+  <!-- 3D: СРОКИ -->
+  <section id="v-p-cal" class="view" hidden style="flex-direction:column;gap:16px">
+    <div class="monthnav">
+      <button id="cPrev" aria-label="Предыдущий месяц">‹</button>
+      <div class="mname" id="cName">—</div>
+      <button id="cNext" aria-label="Следующий месяц">›</button>
+    </div>
+    <div class="grid2" id="cKpi"></div>
+    <div class="card cal-card"><div class="cal" id="cGrid"></div>
+      <div class="legend"><span><i style="background:var(--blue)"></i>в работе — плановая дата</span><span><i style="background:var(--red)"></i>просрочен</span><span><i style="background:var(--accent)"></i>готов, ждёт выдачи</span><span><i style="background:var(--line)"></i>передан клиенту</span></div></div>
+    <h2 class="sec">В работе без срока</h2>
+    <div class="ops" id="cNoDate"></div>
   </section>
 
   <!-- 3D: ДИЗАЙНЕРЫ -->
@@ -686,6 +744,7 @@ button.cell:hover, .jobcard:hover { transform: translateY(-2px); }
     <button data-v="p-orders"><svg viewBox="0 0 24 24"><path d="M6 3h12l2 4H4z"/><rect x="4" y="7" width="16" height="9" rx="1"/><path d="M9 16v5h6v-5"/></svg>Заказы</button>
     <button data-v="p-stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Статистика</button>
     <button data-v="p-des"><svg viewBox="0 0 24 24"><path d="M3 21l3-1 11-11-2-2L4 18z"/><path d="M14 6l2-2 4 4-2 2"/></svg>Дизайн и скан</button>
+    <button data-v="p-cal"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Сроки</button>
     <button data-v="p-settle"><svg viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg>Расчёты</button>
   </nav>
 </div>
@@ -926,7 +985,7 @@ function renderHome() {
   $('owe').textContent = (owe < -0.5 ? 'переплата ' + money(-owe) : money(Math.max(owe, 0))) + ' ₸';
   $('oweCell').className = 'cell ' + (Math.abs(owe) < 1 ? 'ok' : 'owe');
 
-  const goal = num(store.get('goal'));
+  const goal = 0;
   $('goalBox').hidden = !goal;
   if (goal) {
     const p = Math.max(0, Math.min(1, acc / goal));
@@ -946,7 +1005,7 @@ function renderHome() {
   if (refunds) facts.push('Возвраты <b class="num">' + signed(refunds) + ' ₸</b>');
   if (isNow && acc > 0) {
     const d = new Date(), dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    facts.push('Прогноз <b class="num">≈ ' + money(acc / d.getDate() * dim) + ' ₸</b>');
+    facts.push('Прогноз на месяц <b class="num">≈ ' + money(forecast().coach) + ' ₸</b>');
   }
   $('facts').innerHTML = facts.map(f => '<span class="chip">' + f + '</span>').join('');
   renderFeed(cur);
@@ -1174,6 +1233,7 @@ function render() {
   if (view === 'p-stats') renderPStats();
   if (view === 'p-des') renderDes();
   if (view === 'p-settle') renderPSettle();
+  if (view === 'p-cal') renderCal();
   if (view === 'home') renderHome();
   if (view === 'stats') renderStats();
   if (view === 'kids') renderKids();
@@ -1331,7 +1391,7 @@ $('prev').onclick = () => { const ms = monthList(), i = ms.indexOf(month); if (i
 $('next').onclick = () => { const ms = monthList(), i = ms.indexOf(month); if (i < ms.length - 1) { month = ms[i + 1]; renderHome(); } };
 
 /* ---------- цель ---------- */
-$('goalBtn').onclick = () => { $('gAmount').value = store.get('goal') || ''; $('goalBg').hidden = false; $('gAmount').focus(); };
+$('goalBtn').onclick = () => go('p-cal');
 $('gCancel').onclick = () => { $('goalBg').hidden = true; };
 $('goalBg').addEventListener('click', e => { if (e.target === $('goalBg')) $('goalBg').hidden = true; });
 $('goalForm').addEventListener('submit', e => { e.preventDefault(); const v = num($('gAmount').value); store.set('goal', v > 0 ? String(Math.round(v)) : null); $('goalBg').hidden = true; render(); });
@@ -1567,10 +1627,14 @@ function renderAll() {
   const readyN = p3().filter(o => o.ready).length, overN = p3().filter(o => o.overdue).length;
   const total = cAcc + pMine;
   countTo($('aTotal'), total, '<small>₸</small>');
+  const isNowA = aMonth === mk(new Date());
+  $('aFc').hidden = !isNowA;
+  if (isNowA) { const f = forecast();
+    $('aFc').innerHTML = `<span class="fc-l">Прогноз на конец месяца</span><b class="num">≈ ${money(f.total)} ₸</b><span class="fc-s">тренерство ≈ ${money(f.coach)} · 3D ≈ ${money(f.print)}</span>`; }
   const pa = total > 0 ? Math.max(0, cAcc) / (Math.max(0, cAcc) + Math.max(0, pMine) || 1) * 100 : 0;
   $('aSplit').innerHTML = total > 0 ? `<div class="split-bar"><i style="width:${pa.toFixed(1)}%"></i><b style="width:${(100 - pa).toFixed(1)}%"></b></div>
     <div class="split-t"><span><i class="dot a"></i>Тренерство ${money(cAcc)} ₸</span><span><i class="dot b"></i>3D-печать ${money(pMine)} ₸</span></div>` : '';
-  const goal = num(store.get('goal'));
+  const goal = 0;
   $('aGoalBox').hidden = !goal;
   if (goal) { const p = Math.max(0, Math.min(1, total / goal)); $('aGoalFill').style.width = (p * 100).toFixed(1) + '%';
     $('aGoalL').textContent = 'Цель ' + money(goal) + ' ₸ · ' + Math.round(p * 100) + '%'; $('aGoalR').textContent = total >= goal ? 'выполнена' : 'осталось ' + money(goal - total) + ' ₸'; }
@@ -1759,6 +1823,7 @@ function renderPStats() {
   const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(list.filter(o => o.isMeDes), o => o.desT), 'var(--accent)'],
     ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
   const mx = Math.max(...parts.map(x => Math.abs(x[1])), 1);
+  renderProf(list);
   $('ppMix').innerHTML = parts.map(([t, v, c]) => `<div class="hb"><span>${t}</span><b class="num">${money(v)} ₸${rev ? ' · ' + Math.round(v / rev * 100) + '%' : ''}</b><div class="track"><i style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${c}"></i></div></div>`).join('') || '<div class="hint">Нет данных.</div>';
   barChart($('ppPlastic'), ms.map(m => ({ k: m, v: Math.round(sum(p3().filter(o => o.month === m), o => o.grams) / 100) / 10, lab: MSHORT[+m.slice(5) - 1] })), { sel: pMonth });
   const cl = new Map();
@@ -1789,6 +1854,106 @@ function renderDes() {
 }
 $('dPrev').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (i > 0) { dMonth = ms[i - 1]; renderDes(); } };
 $('dNext').onclick = () => { const ms = months3d(), i = ms.indexOf(dMonth); if (i < ms.length - 1) { dMonth = ms[i + 1]; renderDes(); } };
+
+
+/* ---------- ПРОГНОЗ НА КОНЕЦ МЕСЯЦА ---------- */
+// Тренерство: какую долю месяца я обычно набираю к сегодняшнему числу (по прошлым месяцам) + среднее за 3 месяца.
+// 3D: заказы, уже принятые в этом месяце (доход идёт в месяц приёма) + обычный темп новых заказов в день × оставшиеся дни.
+function forecast() {
+  const now = new Date(), cur = mk(now), day = now.getDate(), dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const past = monthList().filter(m => m < cur).slice(-6);
+  const shares = [], totals = [];
+  past.forEach(m => {
+    const rs = mine().filter(r => r.month === m && r.date), tot = sum(rs, r => r.acc);
+    if (tot <= 0 || rs.length < 3) return;
+    totals.push(tot);
+    shares.push(Math.max(0, Math.min(1, sum(rs.filter(r => r.date.getDate() <= day), r => r.acc) / tot)));
+  });
+  const accNow = sum(mine().filter(r => r.month === cur), r => r.acc);
+  const avg3 = totals.length ? sum(totals.slice(-3), x => x) / Math.min(3, totals.length) : 0;
+  const share = shares.length ? sum(shares, x => x) / shares.length : day / dim;
+  // уже заработано + сколько обычно приходит за оставшуюся часть месяца
+  const coach = avg3 ? accNow + (1 - share) * avg3 : (day > 3 ? accNow / day * dim : accNow);
+  // 3D
+  const pNow = mine3d(p3().filter(o => o.month === cur));
+  const p3m = months3d().filter(m => m < cur).slice(-3);
+  const pDaily = p3m.length ? sum(p3m, m => mine3d(p3().filter(o => o.month === m))) / sum(p3m, m => { const [y, mm] = m.split('-').map(Number); return new Date(y, mm, 0).getDate(); }) : 0;
+  const print = pNow + pDaily * (dim - day);
+  return { coach: Math.round(coach), print: Math.round(print), total: Math.round(coach + print), accNow, pNow, day, dim, months: shares.length };
+}
+
+/* ---------- 3D: КАЛЕНДАРЬ СРОКОВ ---------- */
+let cMonth = null;
+function renderCal() {
+  const now = mk(new Date());
+  if (!cMonth) cMonth = now;
+  $('cName').innerHTML = mLabel(cMonth) + (cMonth === now ? '<small>текущий месяц</small>' : '');
+  if (!loaded3d) return;
+  const t0 = today0(), [y, m] = cMonth.split('-').map(Number);
+  const first = new Date(y, m - 1, 1), dim = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7;
+  const live = p3().filter(o => !o.void && o.status !== 'Тишина');
+  const byDay = {};
+  const put = (d, o, kind) => { if (!d || mk(d) !== cMonth) return; (byDay[d.getDate()] = byDay[d.getDate()] || []).push({ o, kind }); };
+  live.forEach(o => { if (o.open && o.plan) put(o.plan, o, o.overdue ? 'late' : o.ready ? 'ready' : 'work'); else if (o.handed && o.fact) put(o.fact, o, 'done'); });
+  const open = live.filter(o => o.open);
+  const week = open.filter(o => o.plan && o.plan >= t0 && o.plan - t0 < 7 * 864e5);
+  $('cKpi').innerHTML = [
+    ['Просрочено', open.filter(o => o.overdue).length, 'срок прошёл, не передан', open.some(o => o.overdue) ? 'owe' : 'ok'],
+    ['На этой неделе', week.length, 'срок в ближайшие 7 дней', ''],
+    ['Ждут выдачи', open.filter(o => o.ready).length, 'готовы, не переданы', ''],
+    ['Без срока', open.filter(o => !o.plan).length, 'в работе, дата не указана', '']
+  ].map(([l, v, sub, c]) => `<div class="cell ${c}"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${sub}</span></div>`).join('');
+  const DOWL = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+  let h = DOW.map(d => `<div class="cal-h">${d}</div>`).join('') + '<div class="cal-pad"></div>'.repeat(lead);
+  for (let d = 1; d <= dim; d++) {
+    const date = new Date(y, m - 1, d), items = (byDay[d] || []).sort((a, b) => ['late', 'work', 'ready', 'done'].indexOf(a.kind) - ['late', 'work', 'ready', 'done'].indexOf(b.kind));
+    const isT = +date === +t0, wd = DOWL[(date.getDay() + 6) % 7];
+    h += `<div class="cal-d${isT ? ' today' : ''}${items.length ? '' : ' empty'}${date < t0 ? ' past' : ''}"><div class="cal-n"><b>${d}</b><span>${MONTHS_GEN[m - 1]}, ${wd}</span>${isT ? '<em>сегодня</em>' : ''}</div>` +
+      items.map(({ o, kind }) => `<button class="cal-o k-${kind}" data-id="${esc(o.id)}" title="${esc(o.desc)}"><span class="no">№${o.no}</span> ${esc((o.client || o.desc || '').split('\n')[0].slice(0, 40))}</button>`).join('') + '</div>';
+  }
+  $('cGrid').innerHTML = h;
+  $('cGrid').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
+  const nd = open.filter(o => !o.plan).sort((a, b) => (a.date || 0) - (b.date || 0));
+  $('cNoDate').innerHTML = nd.length ? nd.map(ordLine).join('') : '<div class="empty" style="border:0">У всех заказов в работе указан срок.</div>';
+  $('cNoDate').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
+}
+$('cPrev').onclick = () => { cMonth = shiftM(cMonth || mk(new Date()), -1); renderCal(); playView(); };
+$('cNext').onclick = () => { cMonth = shiftM(cMonth || mk(new Date()), 1); renderCal(); playView(); };
+
+/* ---------- 3D: ПРИБЫЛЬНОСТЬ ПО ТИПАМ ---------- */
+const KINDS = [
+  ['Тестовые образцы', /тест|пробник|образец|образц/],
+  ['Трафареты', /трафарет/],
+  ['Брелоки', /брел/],
+  ['Медали', /медал/],
+  ['Топперы', /топпер/],
+  ['Головы и маски', /голов|маск|шлем/],
+  ['Технические детали', /насадк|панел|диспенсер|креплен|шнек|насос|детал|губа|корпус|держател|запчаст/],
+  ['Фигурки', /фигур|статуэт|кофейн|тыкв|панд|мопс|утк|кот|единорог|сов[аы ]|фанко|дракон|хелл?оу|капибар|печеньк|мишк|приведен|солныш|динозавр|каратист|бетмен|супермен|ларри|лари|дпс|топорик|мина|игра|тилло|кубик|фишк/]
+];
+const kindOf = o => { const t = kidKey((o.desc || '') + ' ' + (o.note || '')); for (const [n, re] of KINDS) if (re.test(t)) return n; return 'Другое'; };
+let profOpen = null;
+function renderProf(list) {
+  const g = new Map();
+  list.forEach(o => { const k = kindOf(o); const x = g.get(k) || { k, n: 0, rev: 0, grams: 0, mine: 0, gramsKnown: 0, revKnown: 0, mineKnown: 0, items: [] };
+    x.n++; x.rev += o.price + o.scan; x.mine += o.mine; x.grams += o.grams; x.items.push(o);
+    if (o.grams > 0) { x.gramsKnown += o.grams; x.revKnown += o.price + o.scan; x.mineKnown += o.mine; }
+    g.set(k, x); });
+  const rows = [...g.values()].sort((a, b) => b.mine - a.mine);
+  if (!rows.length) { $('ppProf').innerHTML = '<tr><td class="hint">Нет заказов за период.</td></tr>'; $('ppProfList').innerHTML = ''; return; }
+  const best = Math.max(...rows.map(r => r.gramsKnown ? r.mineKnown / r.gramsKnown : 0), 1);
+  $('ppProf').innerHTML = '<tr><th>Тип</th><th class="r">Заказов</th><th class="r">Выручка</th><th class="r">Средний чек</th><th class="r">Пластик</th><th class="r">Клиент за 1 г</th><th class="r">Мне за 1 г</th><th class="r">Мне всего</th></tr>' +
+    rows.map(r => { const pg = r.gramsKnown ? r.revKnown / r.gramsKnown : null, mg = r.gramsKnown ? r.mineKnown / r.gramsKnown : null;
+      return `<tr class="prof-row${profOpen === r.k ? ' sel' : ''}" data-k="${esc(r.k)}"><td><b>${esc(r.k)}</b></td><td class="r num">${r.n}</td><td class="r num">${money(r.rev)} ₸</td><td class="r num">${money(r.rev / r.n)} ₸</td>
+        <td class="r num">${r.grams ? (r.grams >= 1000 ? (r.grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг' : money(r.grams) + ' г') : '—'}</td>
+        <td class="r num">${pg != null ? money(pg) + ' ₸' : '—'}</td>
+        <td class="r num"><span class="pbar"><i style="width:${mg != null ? Math.max(4, mg / best * 100).toFixed(0) : 0}%"></i></span>${mg != null ? money(mg) + ' ₸' : '—'}</td>
+        <td class="r num mine">${money(r.mine)} ₸</td></tr>`; }).join('');
+  $('ppProf').querySelectorAll('[data-k]').forEach(tr => tr.onclick = () => { profOpen = profOpen === tr.dataset.k ? null : tr.dataset.k; renderProf(list); });
+  const sel = rows.find(r => r.k === profOpen);
+  $('ppProfList').innerHTML = sel ? `<div class="ops" style="margin-top:4px">${sel.items.sort((a, b) => b.mine - a.mine).map(ordLine).join('')}</div>` : '';
+  $('ppProfList').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
+}
 
 /* ---------- 3D: РАСЧЁТЫ ---------- */
 let psConfirm = null;
