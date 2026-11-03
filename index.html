@@ -547,6 +547,15 @@ td.mine { color: var(--accent); font-weight: 600; }
   body.desk #v-p-cal { grid-template-columns: minmax(0, 1fr); }
   body.desk #cKpi { grid-template-columns: repeat(4, 1fr); }
 }
+
+.pr-card { gap: 10px; }
+.pr-row { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; }
+.pr-row + .pr-row { border-top: 1px solid var(--line); }
+.pr-h { display: flex; justify-content: space-between; gap: 10px; }
+.pr-h span { font-family: var(--f-display); font-weight: 600; white-space: nowrap; }
+.pr-m { font-size: 12.5px; color: var(--muted); }
+.pr-a { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.pr-a select { flex: 1 1 260px; min-width: 0; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); }
 </style>
 </head>
 <body>
@@ -665,6 +674,11 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="big num" id="pMine">—</div>
     </div>
     <div class="grid2" id="pKpi"></div>
+    <div class="card pr-card" id="prBox" hidden>
+      <h3 id="prTitle">Неразобранные печати</h3>
+      <div class="hint">Печати с принтеров Тимура «на заказ», для которых я не смог сам найти заказ. Выберите заказ — граммы прибавятся к нему. Галочка «запомнить» — следующие печати с таким названием уйдут туда же сами.</div>
+      <div class="ops" id="prList"></div>
+    </div>
     <div id="pSearchRow"><input class="search" id="pSearch" type="search" placeholder="Поиск: клиент, описание, №" autocomplete="off"></div>
     <div class="chips" id="pFilter"></div>
     <div id="pTableBox">
@@ -1295,6 +1309,8 @@ async function refreshNow() {
         mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE }, { cache: { staleTime: 0, gcTime: 604800000, refresh: true } }),
         mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE3D }, { cache: { staleTime: 0, gcTime: 604800000, refresh: true } }).catch(() => null)]);
       if (b3) { loaded3d = true; ingest3d(payloadValues(b3) || []); }
+      const bp = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGEPR }, { cache: { staleTime: 0, gcTime: 604800000, refresh: true } }).catch(() => null);
+      if (bp) ingestPrints(payloadValues(bp) || []);
       onData(a);
     }
     else await apiLoad();
@@ -1320,6 +1336,7 @@ async function apiLoad() {
   catch (e) { onError({ code: 'server_unavailable' }); return; }
   if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
   if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
+  if (res.valuesPrints) ingestPrints(res.valuesPrints);
   onData({ payload: { values: res.values } });
 }
 function askKey(err) {
@@ -1347,6 +1364,8 @@ async function boot() {
   if (!mcp) { $('feed').innerHTML = ''; $('fab').hidden = true; setNotice('Откройте эту страницу через claude.ai, войдя в свой аккаунт: данные берутся из вашей Google Таблицы через подключение Claude.', true); return; }
   src = 'mcp'; $('fab').hidden = !['home', 'p-orders'].includes(view);
   mcp.watchTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE }, ev => { if (ev.type === 'data') onData(ev.result); else onError(ev.error); },
+    { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
+  mcp.watchTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGEPR }, ev => { if (ev.type === 'data') { ingestPrints(payloadValues(ev.result) || []); if (view === 'p-orders') renderPrints(); } },
     { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
   mcp.watchTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: RANGE3D }, ev => { if (ev.type === 'data') onData3d(ev.result); },
     { refetchInterval: 60000, cache: { staleTime: 30000, gcTime: 604800000 } });
@@ -1713,6 +1732,7 @@ function renderOrders() {
   $('pList').innerHTML = show.length ? show.map(ordLine).join('') : `<div class="empty" style="border:0">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+», чтобы добавить.'}</div>`;
   $('pList').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
   if (isWide()) renderTable();
+  renderPrints();
 }
 
 /* ---------- ноутбук: таблица ---------- */
@@ -1953,6 +1973,64 @@ function renderProf(list) {
   const sel = rows.find(r => r.k === profOpen);
   $('ppProfList').innerHTML = sel ? `<div class="ops" style="margin-top:4px">${sel.items.sort((a, b) => b.mine - a.mine).map(ordLine).join('')}</div>` : '';
   $('ppProfList').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
+}
+
+
+/* ---------- ПЕЧАТИ С ПРИНТЕРОВ ---------- */
+const RANGEPR = "'Журнал печатей'!A1:L";
+let prints = [], prHead = [];
+function ingestPrints(values) {
+  if (!Array.isArray(values) || !values.length) { prints = []; return; }
+  prHead = values[0].map(h => String(h).trim());
+  const ix = n => prHead.indexOf(n);
+  prints = values.slice(1).map((r, i) => ({ row: i + 2, id: r[ix('ID печати')], start: r[ix('Запуск')], end: r[ix('Снято')], printer: r[ix('Принтер')], name: r[ix('Название')],
+    grams: num(r[ix('Граммы')]), share: r[ix('Доля напечатано')], note: r[ix('Итог')], order: r[ix('ID заказа')], no: String(r[ix('№ заказа')] || '').replace(/^'/, ''), how: r[ix('Как привязано')] })).filter(p => p.id);
+}
+const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\.(stl|3mf|gcode|obj)(\.3mf)?$/g, '').replace(/[_\-–]+/g, ' ')
+  .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
+function renderPrints() {
+  const un = prints.filter(p => p.how === 'не разобрано');
+  $('prBox').hidden = !un.length;
+  if (!un.length) return;
+  $('prTitle').textContent = 'Неразобранные печати · ' + un.length;
+  const act = p3().filter(o => o.open).sort((a, b) => (b.date || 0) - (a.date || 0));
+  const opts = act.map(o => `<option value="${esc(o.id)}">№${o.no} ${esc((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).slice(0, 70)} (${mLabel(o.month).toLowerCase()})</option>`).join('');
+  $('prList').innerHTML = un.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
+    <div class="pr-h"><b>${esc(p.name || 'без названия')}</b><span class="num">${money(p.grams)} г</span></div>
+    <div class="pr-m">${esc(p.printer)} · ${esc(p.start)}${p.share && p.share !== '1' ? ' · <span class="flag bad">напечатано ' + Math.round(num(p.share) * 100) + '%</span>' : ''}</div>
+    <div class="pr-a"><select aria-label="Заказ для печати"><option value="">Выберите заказ…</option>${opts}<option value="-">Не для заказа — пропустить</option></select>
+      <label class="check" style="font-size:13px"><input type="checkbox" checked> запомнить «${esc(prKey(p.name) || p.name)}»</label>
+      <button class="btn sm" type="button">Привязать</button></div></div>`).join('');
+  $('prList').querySelectorAll('.pr-row').forEach(el => {
+    const sel = el.querySelector('select'), btn = el.querySelector('button'), rem = el.querySelector('input');
+    btn.onclick = async () => {
+      if (!sel.value) { sel.focus(); return; }
+      btn.disabled = true; btn.textContent = 'Записываю…';
+      try { await assignPrint(prints.find(x => x.id === el.dataset.pid), sel.value, rem.checked); await refreshNow(); $('status').textContent = 'Печать привязана'; }
+      catch (e) { btn.disabled = false; btn.textContent = 'Привязать'; showWriteError(e); }
+    };
+  });
+}
+async function assignPrint(p, orderId, remember) {
+  if (!p) throw { code: 'moved', message: 'Печать не нашлась — нажмите «Обновить».' };
+  if (src === 'api') {
+    if (orderId === '-') return apiPost({ action: 'skipprint', printId: p.id });
+    return apiPost({ action: 'assignprint', printId: p.id, orderId, remember });
+  }
+  const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!A${p.row}:K${p.row}` }, { cache: false });
+  const v = payloadValues(chk); if (!v || !v[0] || v[0][0] !== p.id || v[0][8]) throw { code: 'moved', message: 'Эту печать уже разобрали или таблица изменилась. Нажмите «Обновить».' };
+  if (orderId === '-') return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!K${p.row}`, values: [['пропущено']] });
+  const o = p3().find(x => x.id === orderId); if (!o) throw { code: 'moved', message: 'Заказ не нашёлся — нажмите «Обновить».' };
+  const parts = [...o.parts, p.grams].map(x => String(x).replace('.', ',')).join('+');
+  await saveOrderRow(o, { 'Пластик, г (части через +)': parts });
+  await mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!I${p.row}:K${p.row}`, values: [[o.id, "'" + o.no, 'вручную']] });
+  if (remember && prKey(p.name)) await mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'Псевдонимы печати'!A1", values: [[prKey(p.name), o.id, new Date().toLocaleString('ru-RU')]] });
+}
+async function apiPost(body) {
+  const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ key: store.get('appKey') }, body)) }).then(r => r.json()).catch(() => null);
+  if (!res) throw { code: 'server_unavailable' };
+  if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error === 'already' ? 'Эту печать уже разобрали.' : res.error };
+  return res;
 }
 
 /* ---------- 3D: РАСЧЁТЫ ---------- */
