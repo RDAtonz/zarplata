@@ -254,6 +254,20 @@ tr:last-child td { border-bottom: 0; }
 .parts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .part { display: inline-flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 4px 6px 4px 10px; font-size: 13.5px; }
 .part button { border: 0; background: none; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 4px; }
+.items { display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.item .nm { font-weight: 600; font-size: 14.5px; overflow-wrap: anywhere; }
+.item .ctl { display: inline-flex; align-items: center; gap: 4px; justify-self: end; }
+.item .ctl button { width: 34px; height: 34px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; cursor: pointer; font-size: 18px; line-height: 1; color: var(--fg); }
+.item .ctl input { width: 54px; text-align: center; border: 1px solid var(--line); border-radius: 10px; height: 34px; background: var(--surface); color: var(--fg); font: inherit; font-variant-numeric: tabular-nums; }
+.item .ctl .of { color: var(--muted); font-size: 13.5px; white-space: nowrap; }
+.item .ctl .rm { border: 0; background: none; color: var(--muted); }
+.item .left { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+.bar { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; grid-column: 1 / -1; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s; }
+.bar.full i { background: var(--ok, #2f9e5b); }
+.ord .prog { grid-column: 1 / -1; display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.ord .prog .bar { grid-column: auto; }
 .calc { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; background: var(--bg); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
 .calc .r { text-align: right; font-variant-numeric: tabular-nums; }
 .calc .tot { font-weight: 700; color: var(--accent); }
@@ -807,6 +821,10 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="field"><label for="oDate">Дата заказа</label><input id="oDate" type="date"></div>
     </div>
     <div class="field"><label for="oDesc">Что печатаем</label><textarea id="oDesc" placeholder="Например: фигурки для кофейни, 3 вида по 200 шт"></textarea></div>
+    <div class="grp">Состав и прогресс <span style="font-weight:400;text-transform:none">(необязательно)</span></div>
+    <div class="items" id="oItems"></div>
+    <div style="display:flex;gap:8px;align-items:center"><input id="oItName" class="search" placeholder="Вид, например: Капибара" style="flex:1 1 auto;min-width:0"><input id="oItQty" class="search" inputmode="numeric" placeholder="Всего" style="flex:0 0 78px"><button type="button" class="btn ghost" id="oItAdd" style="flex:0 0 auto">Добавить</button></div>
+    <div class="status" style="text-align:left;margin-top:-6px">Для заказов из нескольких штук или видов: впишите, сколько нужно напечатать, и отмечайте «готово». Остаток считается сам. Если не нужно, оставьте пустым.</div>
     <div class="grp">Деньги</div>
     <div class="row2">
       <div class="field"><label for="oPrice">Цена заказа, ₸</label><input id="oPrice" inputmode="decimal" placeholder="60000"></div>
@@ -1551,10 +1569,20 @@ async function saveOp(del) {
 }
 
 /* =====================  РАЗДЕЛЫ И 3D-ПЕЧАТЬ  ===================== */
-const RANGE3D = "'3D-заказы'!A1:W";
+const RANGE3D = "'3D-заказы'!A1:X";
 const C3 = ['ID', '№', 'Дата заказа', 'Месяц', 'Плановая дата', 'Клиент', 'Описание', 'Статус', 'Цена заказа, ₸', 'Предоплата, ₸',
   'Пластик, г (части через +)', 'Цена пластика, ₸/г', 'Дизайнер', 'Оплата дизайнеру', 'Валюта', 'Курс ₽→₸', 'Доля Асета, %', 'Рассчитались', 'Примечание', 'Источник',
-  'Передан клиенту (факт)', 'Сканирование, ₸', 'Сканировал'];
+  'Передан клиенту (факт)', 'Сканирование, ₸', 'Сканировал', 'Состав (готово/всего)'];
+
+/* «Капибара 8/28; Сова 0/10» ↔ [{name, done, total}] */
+function parseItems(s) {
+  return String(s || '').split(/[;\n]+/).map(x => x.trim()).filter(Boolean).map(x => {
+    const m = x.match(/^(.*?)[\s:—–-]*(\d+)\s*\/\s*(\d+)$/);
+    return m ? { name: m[1].trim() || 'Всего', done: +m[2], total: +m[3] } : null;
+  }).filter(Boolean);
+}
+const itemsText = list => list.map(i => `${i.name.replace(/[;\/]/g, ' ').trim() || 'Всего'} ${i.done}/${i.total}`).join('; ');
+const itemsSum = list => ({ done: list.reduce((s, i) => s + i.done, 0), total: list.reduce((s, i) => s + i.total, 0) });
 const STATUSES = [
   ['На согласовании', 's-talk'], ['Моделируется', 's-model'], ['В очереди', 's-queue'], ['Печатается', 's-print'], ['Постобработка', 's-post'],
   ['Готов', 's-ready'], ['Передан клиенту', 's-done'], ['Тишина', 's-quiet'], ['Возврат', 's-void'], ['Отменён', 's-void']];
@@ -1582,7 +1610,7 @@ function ingest3d(values) {
       plPrice: g(r, 'Цена пластика, ₸/г') === '' ? 5 : num(g(r, 'Цена пластика, ₸/г')),
       des: g(r, 'Дизайнер'), desPay: num(g(r, 'Оплата дизайнеру')), cur: g(r, 'Валюта') || '₽',
       rate: g(r, 'Курс ₽→₸') === '' ? 5.5 : num(g(r, 'Курс ₽→₸')), share: g(r, 'Доля Асета, %') === '' ? 35 : num(g(r, 'Доля Асета, %')),
-      paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник') };
+      paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник'), items: parseItems(g(r, 'Состав (готово/всего)')) };
     let m = g(r, 'Месяц').replace(/^'/, '');
     if (!/^\d{4}-\d{2}$/.test(m)) m = o.date ? mk(o.date) : '';
     o.month = m;
@@ -1817,6 +1845,8 @@ function ordLine(o) {
   return `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no || '—'}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
     <div class="pr num"><b>${o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts ? `<span>мне ${money(o.mine)}</span>` : ''}</div>
     ${o.desc ? `<div class="ds">${esc(o.desc)}</div>` : ''}
+    ${o.items.length ? (() => { const s = itemsSum(o.items), pc = s.total ? Math.min(100, Math.round(s.done / s.total * 100)) : 0;
+      return `<div class="prog"><span>${o.items.length > 1 ? o.items.map(i => esc(i.name) + ' ' + i.done + '/' + i.total).join(' · ') : 'Готово ' + s.done + ' из ' + s.total}${s.done < s.total ? ' · осталось ' + (s.total - s.done) : ' · всё готово ✓'}</span><div class="bar ${s.done >= s.total ? 'full' : ''}"><i style="width:${pc}%"></i></div></div>`; })() : ''}
     <div class="mt"><span class="st ${ST_CLS[o.status] || ''}">${esc(o.status)}</span>${o.date ? '<span>' + o.date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + '</span>' : ''}${flags.map(f => '<span>' + f + '</span>').join('')}</div></button>`;
 }
 $('pPrev').onclick = () => { const ms = months3d(), i = ms.indexOf(pMonth); if (i > 0) { pMonth = ms[i - 1]; renderOrders(); } };
@@ -2082,7 +2112,7 @@ async function saveOrderRow(o, patch) {
       // проверяем, что строка на месте (таблицу могли поменять)
       const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}` }, { cache: false });
       const v = payloadValues(chk); if (!v || !v[0] || v[0][0] !== o.id) throw { code: 'moved', message: 'Таблица изменилась. Нажмите «Обновить» и повторите.' };
-      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:W${o.row}`, values: [row] });
+      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:X${o.row}`, values: [row] });
     }
     return mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'3D-заказы'!A1", values: [row] });
   }
@@ -2093,7 +2123,7 @@ async function saveOrderRow(o, patch) {
 }
 
 /* ---------- карточка заказа ---------- */
-let oParts = [], oStatus = 'На согласовании';
+let oParts = [], oItems = [], oStatus = 'На согласовании';
 function openOrder(id) {
   const o = id ? p3().find(x => x.id === id) : null;
   editing = o;
@@ -2101,6 +2131,8 @@ function openOrder(id) {
   $('oTitle').textContent = o ? `Заказ №${o.no}` : 'Новый заказ';
   oStatus = o ? o.status : 'На согласовании';
   oParts = o ? o.parts.slice() : [];
+  oItems = o ? o.items.map(i => ({ ...i })) : [];
+  $('oItName').value = ''; $('oItQty').value = '';
   $('oClient').value = o ? o.client : '';
   $('oDate').value = isoDate(o ? o.date : new Date());
   $('oDesc').value = o ? o.desc : '';
@@ -2136,6 +2168,7 @@ function drawOrderForm() {
   $('oStatus').querySelectorAll('button').forEach(b => b.onclick = () => { oStatus = b.dataset.s; if (oStatus === 'Передан клиенту' && !$('oFact').value) $('oFact').value = isoDate(new Date()); if (oStatus !== 'Передан клиенту') $('oFact').value = ''; drawOrderForm(); });
   $('oParts').innerHTML = oParts.length ? oParts.map((g, i) => `<span class="part">${money(g)} г<button type="button" data-i="${i}" aria-label="Убрать">×</button></span>`).join('') + `<span class="status">итого ${money(oParts.reduce((s, x) => s + x, 0))} г</span>` : '<span class="status">Пока ничего не напечатано</span>';
   $('oParts').querySelectorAll('[data-i]').forEach(b => b.onclick = () => { oParts.splice(+b.dataset.i, 1); drawOrderForm(); });
+  drawItems();
   $('oCur').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === ordCur)));
   $('oRateF').hidden = ordCur !== '₽';
   const f = formOrder();
@@ -2147,6 +2180,30 @@ function drawOrderForm() {
 }
 ['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate', 'oScan', 'oScanner'].forEach(id => $(id).addEventListener('input', drawOrderForm));
 $('oCur').querySelectorAll('button').forEach(b => b.onclick = () => { ordCur = b.dataset.c; drawOrderForm(); });
+/* состав заказа: виды, сколько нужно и сколько готово */
+function drawItems() {
+  const box = $('oItems');
+  box.innerHTML = oItems.map((it, i) => {
+    const left = Math.max(it.total - it.done, 0), pc = it.total ? Math.min(100, Math.round(it.done / it.total * 100)) : 0;
+    return `<div class="item" data-i="${i}"><span class="nm">${esc(it.name)}</span>
+      <span class="ctl"><button type="button" data-d="-1" aria-label="Минус один">−</button><input inputmode="numeric" value="${it.done}" aria-label="Готово"><button type="button" data-d="1" aria-label="Плюс один">+</button><span class="of">из ${it.total}</span><button type="button" class="rm" data-rm="1" aria-label="Убрать вид">×</button></span>
+      <div class="bar ${it.done >= it.total ? 'full' : ''}"><i style="width:${pc}%"></i></div>
+      <span class="left">${it.done >= it.total ? 'Готово ✓' + (it.done > it.total ? ' (с запасом ' + (it.done - it.total) + ')' : '') : 'Осталось: ' + left}</span></div>`;
+  }).join('') + (oItems.length > 1 ? (() => { const s = itemsSum(oItems); return `<div class="status" style="text-align:left">Всего: готово ${s.done} из ${s.total}, осталось ${Math.max(s.total - s.done, 0)}</div>`; })() : '');
+  box.querySelectorAll('.item').forEach(el => {
+    const i = +el.dataset.i, it = oItems[i];
+    el.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { it.done = Math.max(0, it.done + +b.dataset.d); drawItems(); });
+    el.querySelector('[data-rm]').onclick = () => { oItems.splice(i, 1); drawItems(); };
+    el.querySelector('input').onchange = e => { it.done = Math.max(0, Math.floor(num(e.target.value)) || 0); drawItems(); };
+  });
+}
+function addItem() {
+  const name = $('oItName').value.trim(), qty = Math.floor(num($('oItQty').value));
+  if (qty > 0) { oItems.push({ name: name || (oItems.length ? 'Вид ' + (oItems.length + 1) : 'Всего'), done: 0, total: qty }); $('oItName').value = ''; $('oItQty').value = ''; drawItems(); }
+  $((name && !(qty > 0)) ? 'oItQty' : 'oItName').focus();
+}
+$('oItAdd').onclick = addItem;
+['oItName', 'oItQty'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addItem(); } }));
 function addPart() { const v = num($('oPartIn').value); if (v > 0) { oParts.push(v); $('oPartIn').value = ''; drawOrderForm(); } $('oPartIn').focus(); }
 $('oPartAdd').onclick = addPart;
 $('oPartIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addPart(); } });
@@ -2158,6 +2215,7 @@ $('ordForm').addEventListener('submit', async e => {
   if (!$('oClient').value.trim() && !$('oDesc').value.trim()) return err('Впишите клиента или что печатаем.');
   if (!$('oDate').value) return err('Укажите дату заказа.');
   if ($('oPartIn').value.trim()) addPart();
+  if (num($('oItQty').value) > 0) addItem();
   const o = editing, d = fromIso($('oDate').value), mon = $('oDate').value.slice(0, 7);
   const no = o ? o.no : Math.max(0, ...p3().filter(x => x.month === mon).map(x => x.no)) + 1;
   const n = v => { const x = String(v).trim(); return x === '' ? '' : String(num(x)).replace('.', ','); };
@@ -2168,7 +2226,7 @@ $('ordForm').addEventListener('submit', async e => {
     'Цена пластика, ₸/г': n($('oPlPrice').value), 'Дизайнер': $('oDes').value.trim(), 'Оплата дизайнеру': n($('oDesPay').value),
     'Валюта': $('oDesPay').value.trim() ? ordCur : '', 'Курс ₽→₸': n($('oRate').value), 'Доля Асета, %': n($('oShare').value),
     'Рассчитались': $('oPaid').checked ? (o && o.paid ? o.paid : fmtDate(new Date())) : '', 'Примечание': $('oNote').value.trim(),
-    'Источник': o ? (o.src || 'Приложение') : 'Приложение' };
+    'Источник': o ? (o.src || 'Приложение') : 'Приложение', 'Состав (готово/всего)': itemsText(oItems) };
   $('oSave').disabled = true; $('oSave').textContent = 'Сохраняю…';
   try {
     await saveOrderRow(o || { raw: [] }, patch);
