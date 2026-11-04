@@ -693,6 +693,12 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="hint">Печати с принтеров Тимура «на заказ», для которых я не смог сам найти заказ. Выберите заказ — граммы прибавятся к нему. Галочка «запомнить» — следующие печати с таким названием уйдут туда же сами.</div>
       <div class="ops" id="prList"></div>
     </div>
+    <details class="card pr-card" id="prInfo">
+      <summary style="cursor:pointer;font-weight:600">Печати с принтеров: как это работает <span class="status" id="prInfoN" style="margin-left:6px"></span></summary>
+      <div class="hint" style="margin-top:10px">Раз в минуту я смотрю журнал принтеров Тимура (только читаю, там ничего не меняю). Печать попадает сюда <b>только когда у неё статус «Готово»</b>, то есть после того как её сняли с принтера. Пока печатается или стоит на паузе, она не учитывается. Учитываются только печати «Печать на заказ», запущенные после подключения (4 ноября, 00:57).</div>
+      <div class="hint">Граммы прибавляются к заказу автоматически, если название печати (поле «Заказ / клиент» или имя файла) однозначно подходит к одному заказу в работе. Если не подошло, она появится выше в блоке «Неразобранные печати», и вы выберете заказ сами. Для сорванных печатей берутся граммы пропорционально напечатанной доле.</div>
+      <div class="ops" id="prLog"></div>
+    </details>
     <div id="pSearchRow"><input class="search" id="pSearch" type="search" placeholder="Поиск: клиент, описание, №" autocomplete="off"></div>
     <div class="chips" id="pFilter"></div>
     <div id="pTableBox">
@@ -1738,8 +1744,11 @@ function renderOrders() {
   const i = ms.indexOf(pMonth);
   $('pPrev').disabled = i <= 0; $('pNext').disabled = i >= ms.length - 1;
   $('pName').innerHTML = mLabel(pMonth) + (pMonth === now ? '<small>текущий месяц</small>' : '');
-  $('pFilter').innerHTML = FILTERS.map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
+  const unN = prints.filter(p => p.how === 'не разобрано').length;
+  $('pFilter').innerHTML = FILTERS.concat([['prints', 'Неразобранные печати' + (unN ? ' · ' + unN : '')]]).map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
   $('pFilter').querySelectorAll('button').forEach(b => b.onclick = () => { pFilter = b.dataset.f; renderOrders(); });
+  const onPr = pFilter === 'prints';
+  $('pSearchRow').hidden = onPr; $('pList').hidden = onPr; $('pTableBox').hidden = onPr;
   if (!loaded3d) { $('pList').innerHTML = '<div class="empty" style="border:0">Загружаю заказы…</div>'; return; }
   const list = p3().filter(o => o.month === pMonth);
   const m = mine3d(list), done = mine3d(list.filter(o => o.done)), act = list.filter(o => ACTIVE.includes(o.status));
@@ -2020,9 +2029,16 @@ const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\
   .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
 function renderPrints() {
   const un = prints.filter(p => p.how === 'не разобрано');
-  $('prBox').hidden = !un.length;
-  if (!un.length) return;
-  $('prTitle').textContent = 'Неразобранные печати · ' + un.length;
+  const last = prints.slice(-8).reverse();
+  $('prInfoN').textContent = prints.length ? '· записано ' + prints.length : '· пока ни одной';
+  $('prLog').innerHTML = last.length ? last.map(p => {
+    const res = p.how === 'не разобрано' ? 'ждёт выбора заказа' : p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено' : p.no ? '→ заказ №' + p.no : p.how;
+    return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.start)}</span><span>${esc(res)}</span></div></div>`; }).join('')
+    : '<div class="empty" style="border:0">Пока нет завершённых печатей «на заказ» после подключения.</div>';
+  const onPr = pFilter === 'prints';
+  $('prInfo').hidden = !onPr; $('prBox').hidden = !onPr;
+  $('prTitle').textContent = 'Неразобранные печати' + (un.length ? ' · ' + un.length : '');
+  if (!un.length) { $('prList').innerHTML = '<div class="empty" style="border:0">Неразобранных печатей нет: всё, что завершилось, уже привязано к заказам. Ниже в «Как это работает» видно последние записанные печати.</div>'; return; }
   const act = p3().filter(o => o.open).sort((a, b) => (b.date || 0) - (a.date || 0));
   const opts = act.map(o => `<option value="${esc(o.id)}">№${o.no} ${esc((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).slice(0, 70)} (${mLabel(o.month).toLowerCase()})</option>`).join('');
   $('prList').innerHTML = un.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
