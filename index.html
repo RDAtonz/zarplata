@@ -693,11 +693,15 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="hint">Печати с принтеров Тимура «на заказ», для которых я не смог сам найти заказ. Выберите заказ — граммы прибавятся к нему. Галочка «запомнить» — следующие печати с таким названием уйдут туда же сами.</div>
       <div class="ops" id="prList"></div>
     </div>
-    <details class="card pr-card" id="prInfo">
-      <summary style="cursor:pointer;font-weight:600">Печати с принтеров: как это работает <span class="status" id="prInfoN" style="margin-left:6px"></span></summary>
-      <div class="hint" style="margin-top:10px">Раз в минуту я смотрю журнал принтеров Тимура (только читаю, там ничего не меняю). Печать попадает сюда <b>только когда у неё статус «Готово»</b>, то есть после того как её сняли с принтера. Пока печатается или стоит на паузе, она не учитывается. Учитываются только печати «Печать на заказ», запущенные после подключения (4 ноября, 00:57).</div>
-      <div class="hint">Граммы прибавляются к заказу автоматически, если название печати (поле «Заказ / клиент» или имя файла) однозначно подходит к одному заказу в работе. Если не подошло, она появится выше в блоке «Неразобранные печати», и вы выберете заказ сами. Для сорванных печатей берутся граммы пропорционально напечатанной доле.</div>
+    <div class="card pr-card" id="prDone" hidden>
+      <h3 id="prDoneT">Уже привязано</h3>
+      <div class="hint">Все печати «на заказ», которые уже учтены: куда ушли граммы.</div>
       <div class="ops" id="prLog"></div>
+    </div>
+    <details class="card pr-card" id="prInfo" hidden>
+      <summary style="cursor:pointer;font-weight:600">Как это работает</summary>
+      <div class="hint" style="margin-top:10px">Раз в минуту я смотрю таблицу Тимура (только читаю, там ничего не меняю). Печать попадает сюда <b>сразу после окончания</b>: принтер сам записывает итог («завершена» или «прервана») и сколько реально ушло пластика. Снимать пластину в приложении Тимура для этого не нужно. Пока печать идёт или стоит на паузе, она не учитывается. Учитываются только печати «Печать на заказ», запущенные после подключения (4 ноября, 00:57).</div>
+      <div class="hint">Граммы прибавляются к заказу автоматически, если название печати (поле «Заказ / клиент» или имя файла) однозначно подходит к одному заказу в работе. Если не подошло, она остаётся в блоке «Ждёт привязки», и вы выбираете заказ сами. Если печать прервалась, берётся фактический расход по проценту, а не вся модель.</div>
     </details>
     <div id="pSearchRow"><input class="search" id="pSearch" type="search" placeholder="Поиск: клиент, описание, №" autocomplete="off"></div>
     <div class="chips" id="pFilter"></div>
@@ -2029,16 +2033,18 @@ const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\
   .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
 function renderPrints() {
   const un = prints.filter(p => p.how === 'не разобрано');
-  const last = prints.slice(-8).reverse();
-  $('prInfoN').textContent = prints.length ? '· записано ' + prints.length : '· пока ни одной';
-  $('prLog').innerHTML = last.length ? last.map(p => {
-    const res = p.how === 'не разобрано' ? 'ждёт выбора заказа' : p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено' : p.no ? '→ заказ №' + p.no : p.how;
-    return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.start)}</span><span>${esc(res)}</span></div></div>`; }).join('')
+  const doneList = prints.filter(p => p.how !== 'не разобрано').reverse();
+  const tot = sum(doneList.filter(p => p.no), p => p.grams);
+  $('prDoneT').textContent = 'Уже привязано' + (doneList.length ? ' · ' + doneList.length : '');
+  $('prLog').innerHTML = doneList.length ? doneList.map(p => {
+    const res = p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено (не для заказа)' : p.no ? '→ заказ №' + p.no + ' (' + p.how + ')' : p.how;
+    return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.end || p.start)}</span><span class="${p.no ? 'flag ok' : 'flag'}">${esc(res)}</span>${p.note && p.no ? '<span>' + esc(p.note) + '</span>' : ''}</div></div>`; }).join('') + (tot ? `<div class="op small"><span class="who"><b>Всего привязано</b></span><span class="amt num">${money(tot)} г</span></div>` : '')
     : '<div class="empty" style="border:0">Пока нет завершённых печатей «на заказ» после подключения.</div>';
+  $('prDone').hidden = pFilter !== 'prints';
   const onPr = pFilter === 'prints';
   $('prInfo').hidden = !onPr; $('prBox').hidden = !onPr;
-  $('prTitle').textContent = 'Неразобранные печати' + (un.length ? ' · ' + un.length : '');
-  if (!un.length) { $('prList').innerHTML = '<div class="empty" style="border:0">Неразобранных печатей нет: всё, что завершилось, уже привязано к заказам. Ниже в «Как это работает» видно последние записанные печати.</div>'; return; }
+  $('prTitle').textContent = 'Ждёт привязки' + (un.length ? ' · ' + un.length : '');
+  if (!un.length) { $('prList').innerHTML = '<div class="empty" style="border:0">Всё привязано: неразобранных печатей нет.</div>'; return; }
   const act = p3().filter(o => o.open).sort((a, b) => (b.date || 0) - (a.date || 0));
   const opts = act.map(o => `<option value="${esc(o.id)}">№${o.no} ${esc((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).slice(0, 70)} (${mLabel(o.month).toLowerCase()})</option>`).join('');
   $('prList').innerHTML = un.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
