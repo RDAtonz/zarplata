@@ -2033,14 +2033,23 @@ const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\
   .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
 function renderPrints() {
   const un = prints.filter(p => p.how === 'не разобрано');
-  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено').reverse();
+  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено' && p.how !== 'удалено').reverse();
   const ordName = p => { const o = p.order && p3().find(x => x.id === p.order); if (!o) return ''; const t = ((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).replace(/\s+/g, ' ').trim(); return t.length > 34 ? t.slice(0, 33).trimEnd() + '…' : t; };
   const tot = sum(doneList.filter(p => p.no), p => p.grams);
   $('prDoneT').textContent = 'Уже привязано' + (doneList.length ? ' · ' + doneList.length : '');
   $('prLog').innerHTML = doneList.length ? doneList.map(p => {
     const res = p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено (не для заказа)' : p.no ? '→ заказ №' + p.no + (ordName(p) ? ' · ' + ordName(p) : '') + ' (' + p.how + ')' : p.how;
-    return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.end || p.start)}</span><span class="${p.no ? 'flag ok' : 'flag'}">${esc(res)}</span>${p.note && p.no ? '<span>' + esc(p.note) + '</span>' : ''}</div></div>`; }).join('') + (tot ? `<div class="op small"><span class="who"><b>Всего привязано</b></span><span class="amt num">${money(tot)} г</span></div>` : '')
+    return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.end || p.start)}</span><span class="${p.no ? 'flag ok' : 'flag'}">${esc(res)}</span>${p.note && p.no ? '<span>' + esc(p.note) + '</span>' : ''}<button class="btn sm ghost pr-undo" type="button" data-pid="${esc(p.id)}" title="Убрать печать из учёта${p.no ? ' и вычесть граммы из заказа' : ''}">Удалить</button></div></div>`; }).join('') + (tot ? `<div class="op small"><span class="who"><b>Всего привязано</b></span><span class="amt num">${money(tot)} г</span></div>` : '')
     : '<div class="empty" style="border:0">Пока нет завершённых печатей «на заказ» после подключения.</div>';
+  $('prLog').querySelectorAll('.pr-undo').forEach(b => {
+    b.onclick = async () => {
+      const p = prints.find(x => x.id === b.dataset.pid);
+      if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = p && p.no ? 'Точно? −' + money(p.grams) + ' г из заказа' : 'Точно удалить?'; setTimeout(() => { delete b.dataset.sure; if (!b.disabled) b.textContent = 'Удалить'; }, 4000); return; }
+      b.disabled = true; b.textContent = 'Удаляю…';
+      try { await deletePrint(p); await refreshNow(); $('status').textContent = 'Печать удалена из учёта'; }
+      catch (e) { b.disabled = false; b.textContent = 'Удалить'; showWriteError(e); }
+    };
+  });
   $('prDone').hidden = pFilter !== 'prints';
   const onPr = pFilter === 'prints';
   $('prInfo').hidden = !onPr; $('prBox').hidden = !onPr;
@@ -2086,6 +2095,18 @@ async function assignPrint(p, orderId, remember) {
   await saveOrderRow(o, { 'Пластик, г (части через +)': parts });
   await mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!I${p.row}:K${p.row}`, values: [[o.id, "'" + o.no, 'вручную']] });
   if (remember && prKey(p.name)) await mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'Псевдонимы печати'!A1", values: [[prKey(p.name), o.id, new Date().toLocaleString('ru-RU')]] });
+}
+async function deletePrint(p) {
+  if (!p) throw { code: 'moved', message: 'Печать не нашлась — нажмите «Обновить».' };
+  if (src === 'api') return apiPost({ action: 'delprint', printId: p.id });
+  const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!A${p.row}:K${p.row}` }, { cache: false });
+  const v = payloadValues(chk); if (!v || !v[0] || v[0][0] !== p.id) throw { code: 'moved', message: 'Таблица изменилась. Нажмите «Обновить».' };
+  const o = p.order && p3().find(x => x.id === p.order);
+  if (o && p.grams > 0) {
+    const parts = o.parts.slice(); let k = -1; parts.forEach((x, i) => { if (Math.abs(Number(x) - p.grams) < 0.05) k = i; });
+    if (k >= 0) { parts.splice(k, 1); await saveOrderRow(o, { 'Пластик, г (части через +)': parts.map(x => String(x).replace('.', ',')).join('+') }); }
+  }
+  return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!I${p.row}:K${p.row}`, values: [['', '', 'удалено']] });
 }
 async function apiPost(body) {
   const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ key: store.get('appKey') }, body)) }).then(r => r.json()).catch(() => null);
