@@ -2033,11 +2033,12 @@ const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\
   .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
 function renderPrints() {
   const un = prints.filter(p => p.how === 'не разобрано');
-  const doneList = prints.filter(p => p.how !== 'не разобрано').reverse();
+  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено').reverse();
+  const ordName = p => { const o = p.order && p3().find(x => x.id === p.order); if (!o) return ''; const t = ((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).replace(/\s+/g, ' ').trim(); return t.length > 34 ? t.slice(0, 33).trimEnd() + '…' : t; };
   const tot = sum(doneList.filter(p => p.no), p => p.grams);
   $('prDoneT').textContent = 'Уже привязано' + (doneList.length ? ' · ' + doneList.length : '');
   $('prLog').innerHTML = doneList.length ? doneList.map(p => {
-    const res = p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено (не для заказа)' : p.no ? '→ заказ №' + p.no + ' (' + p.how + ')' : p.how;
+    const res = p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено (не для заказа)' : p.no ? '→ заказ №' + p.no + (ordName(p) ? ' · ' + ordName(p) : '') + ' (' + p.how + ')' : p.how;
     return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.end || p.start)}</span><span class="${p.no ? 'flag ok' : 'flag'}">${esc(res)}</span>${p.note && p.no ? '<span>' + esc(p.note) + '</span>' : ''}</div></div>`; }).join('') + (tot ? `<div class="op small"><span class="who"><b>Всего привязано</b></span><span class="amt num">${money(tot)} г</span></div>` : '')
     : '<div class="empty" style="border:0">Пока нет завершённых печатей «на заказ» после подключения.</div>';
   $('prDone').hidden = pFilter !== 'prints';
@@ -2052,9 +2053,17 @@ function renderPrints() {
     <div class="pr-m">${esc(p.printer)} · ${esc(p.start)}${p.share && p.share !== '1' ? ' · <span class="flag bad">напечатано ' + Math.round(num(p.share) * 100) + '%</span>' : ''}</div>
     <div class="pr-a"><select aria-label="Заказ для печати"><option value="">Выберите заказ…</option>${opts}<option value="-">Не для заказа — пропустить</option></select>
       <label class="check" style="font-size:13px"><input type="checkbox" checked> запомнить «${esc(prKey(p.name) || p.name)}»</label>
-      <button class="btn sm" type="button">Привязать</button></div></div>`).join('');
+      <button class="btn sm" type="button">Привязать</button>
+      <button class="btn sm ghost pr-del" type="button" title="Не моя печать — убрать из списка">Удалить</button></div></div>`).join('');
   $('prList').querySelectorAll('.pr-row').forEach(el => {
-    const sel = el.querySelector('select'), btn = el.querySelector('button'), rem = el.querySelector('input');
+    const sel = el.querySelector('select'), btn = el.querySelector('button:not(.pr-del)'), rem = el.querySelector('input'), del = el.querySelector('.pr-del');
+    del.onclick = async () => {
+      const p = prints.find(x => x.id === el.dataset.pid);
+      if (!del.dataset.sure) { del.dataset.sure = '1'; del.textContent = 'Точно удалить?'; setTimeout(() => { delete del.dataset.sure; if (!del.disabled) del.textContent = 'Удалить'; }, 4000); return; }
+      del.disabled = btn.disabled = true; del.textContent = 'Удаляю…';
+      try { await assignPrint(p, '-', false); await refreshNow(); $('status').textContent = 'Печать удалена из списка'; }
+      catch (e) { del.disabled = btn.disabled = false; del.textContent = 'Удалить'; showWriteError(e); }
+    };
     btn.onclick = async () => {
       if (!sel.value) { sel.focus(); return; }
       btn.disabled = true; btn.textContent = 'Записываю…';
