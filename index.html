@@ -173,6 +173,9 @@ tr:last-child td { border-bottom: 0; }
 .btn { border: 0; background: var(--accent); color: var(--bg); border-radius: 12px; padding: 11px 16px; font-weight: 600; cursor: pointer; }
 .btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
 .btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+.pr-pager { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 2px 0; font-size: 13px; color: var(--muted, #8a948d); }
+.pr-pager select { margin-left: 6px; }
+.pr-pg { display: flex; align-items: center; gap: 8px; }
 .btn:disabled { opacity: .5; cursor: default; }
 
 /* дети */
@@ -2031,8 +2034,10 @@ function ingestPrints(values) {
 }
 const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\.(stl|3mf|gcode|obj)(\.3mf)?$/g, '').replace(/[_\-–]+/g, ' ')
   .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
+let prPage = 0, prSize = 10; try { const z = Number(store.get('prSize')); if ([10, 25, 50].includes(z)) prSize = z; } catch (e) {}
+const prTs = p => { const m = String(p.start || '').match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{1,2}):(\d{2})/) || String(p.end || '').match(/(\d{2})\.(\d{2})()\s+(\d{1,2}):(\d{2})/); return m ? new Date(+(m[3] || new Date().getFullYear()), +m[2] - 1, +m[1], +m[4], +m[5]).getTime() : 0; };
 function renderPrints() {
-  const un = prints.filter(p => p.how === 'не разобрано');
+  const un = prints.filter(p => p.how === 'не разобрано').sort((a, b) => (prTs(b) - prTs(a)) || (b.row - a.row));   // новые сверху
   const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено' && p.how !== 'удалено').reverse();
   const ordName = p => { const o = p.order && p3().find(x => x.id === p.order); if (!o) return ''; const t = ((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).replace(/\s+/g, ' ').trim(); return t.length > 34 ? t.slice(0, 33).trimEnd() + '…' : t; };
   const tot = sum(doneList.filter(p => p.no), p => p.grams);
@@ -2054,10 +2059,19 @@ function renderPrints() {
   const onPr = pFilter === 'prints';
   $('prInfo').hidden = !onPr; $('prBox').hidden = !onPr;
   $('prTitle').textContent = 'Ждёт привязки' + (un.length ? ' · ' + un.length : '');
+  if (!un.length && $('prPager')) $('prPager').hidden = true;
   if (!un.length) { $('prList').innerHTML = '<div class="empty" style="border:0">Всё привязано: неразобранных печатей нет.</div>'; return; }
   const act = p3().filter(o => o.open).sort((a, b) => (b.date || 0) - (a.date || 0));
   const opts = act.map(o => `<option value="${esc(o.id)}">№${o.no} ${esc((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).slice(0, 70)} (${mLabel(o.month).toLowerCase()})</option>`).join('');
-  $('prList').innerHTML = un.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
+  const pages = Math.max(1, Math.ceil(un.length / prSize)); if (prPage >= pages) prPage = pages - 1; if (prPage < 0) prPage = 0;
+  const shown = un.slice(prPage * prSize, prPage * prSize + prSize);
+  let pg = $('prPager'); if (!pg) { pg = document.createElement('div'); pg.id = 'prPager'; pg.className = 'pr-pager'; $('prList').after(pg); }
+  pg.hidden = un.length <= 10;
+  pg.innerHTML = `<label>На странице: <select aria-label="Строк на странице">${[10, 25, 50].map(n => `<option${n === prSize ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+    <span class="pr-pg"><button class="btn sm ghost" type="button" data-d="-1"${prPage === 0 ? ' disabled' : ''}>← Новее</button><span>${prPage * prSize + 1}–${Math.min(un.length, prPage * prSize + prSize)} из ${un.length}</span><button class="btn sm ghost" type="button" data-d="1"${prPage >= pages - 1 ? ' disabled' : ''}>Старее →</button></span>`;
+  pg.querySelector('select').onchange = e => { prSize = Number(e.target.value); prPage = 0; try { store.set('prSize', String(prSize)); } catch (x) {} renderPrints(); };
+  pg.querySelectorAll('button').forEach(b => b.onclick = () => { prPage += Number(b.dataset.d); renderPrints(); });
+  $('prList').innerHTML = shown.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
     <div class="pr-h"><b>${esc(p.name || 'без названия')}</b><span class="num">${money(p.grams)} г</span></div>
     <div class="pr-m">${esc(p.printer)} · ${esc(p.start)}${p.share && p.share !== '1' ? ' · <span class="flag bad">напечатано ' + Math.round(num(p.share) * 100) + '%</span>' : ''}</div>
     <div class="pr-a"><select aria-label="Заказ для печати"><option value="">Выберите заказ…</option>${opts}<option value="-">Не для заказа — пропустить</option></select>
