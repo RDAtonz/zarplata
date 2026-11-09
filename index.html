@@ -223,6 +223,9 @@ tr:last-child td { border-bottom: 0; }
 .sections button { border: 0; background: transparent; border-radius: 9px; padding: 9px 4px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); }
 .sections button[aria-pressed="true"] { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 .tabbar nav[hidden] { display: none !important; }
+.sections[hidden] { display: none !important; }
+.amir-t { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); font-size: 14px; cursor: pointer; }
+.amir-t input { margin-top: 3px; }
 .jobcard { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; cursor: pointer; text-align: left; width: 100%; font: inherit; color: inherit; }
 .jobcard .t { font-weight: 600; font-size: 16px; }
 .jobcard .v { font-family: var(--f-display); font-weight: 700; font-size: 22px; }
@@ -691,6 +694,8 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="big num" id="pMine">—</div>
     </div>
     <div class="grid2" id="pKpi"></div>
+    <div id="pSearchRow"><input class="search" id="pSearch" type="search" placeholder="Поиск: клиент, описание, №" autocomplete="off"></div>
+    <div class="chips" id="pFilter"></div>
     <div class="card pr-card" id="prBox" hidden>
       <h3 id="prTitle">Неразобранные печати</h3>
       <div class="hint">Печати с принтеров Тимура «на заказ», для которых я не смог сам найти заказ. Выберите заказ — граммы прибавятся к нему. Галочка «запомнить» — следующие печати с таким названием уйдут туда же сами.</div>
@@ -706,8 +711,6 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="hint" style="margin-top:10px">Раз в минуту я смотрю таблицу Тимура (только читаю, там ничего не меняю). Печать попадает сюда <b>сразу после окончания</b>: принтер сам записывает итог («завершена» или «прервана») и сколько реально ушло пластика. Снимать пластину в приложении Тимура для этого не нужно. Пока печать идёт или стоит на паузе, она не учитывается. Учитываются только печати «Печать на заказ», запущенные после подключения (4 ноября, 00:57).</div>
       <div class="hint">Граммы прибавляются к заказу автоматически, если название печати (поле «Заказ / клиент» или имя файла) однозначно подходит к одному заказу в работе. Если не подошло, она остаётся в блоке «Ждёт привязки», и вы выбираете заказ сами. Если печать прервалась, берётся фактический расход по проценту, а не вся модель.</div>
     </details>
-    <div id="pSearchRow"><input class="search" id="pSearch" type="search" placeholder="Поиск: клиент, описание, №" autocomplete="off"></div>
-    <div class="chips" id="pFilter"></div>
     <div id="pTableBox">
       <div class="ptools">
         <input class="search" id="pSearch2" type="search" placeholder="Поиск по всем заказам: клиент, описание, №" autocomplete="off">
@@ -853,6 +856,7 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="field"><label for="oPlPrice">Цена пластика, ₸/г</label><input id="oPlPrice" inputmode="decimal"></div>
       <div class="field"><label for="oShare">Моя доля в этом заказе, %</label><input id="oShare" inputmode="decimal"></div>
     </div>
+    <label class="check amir-t"><input type="checkbox" id="oAmir"> <span><b>Обработал Амир</b> — моя доля 25%, Амиру 10%</span></label>
     <div class="grp">Дизайн</div>
     <div class="row2">
       <div class="field"><label for="oDes">Дизайнер</label><input id="oDes" list="oDesigners" placeholder="Нет / Рада / Асет"></div>
@@ -1009,6 +1013,8 @@ const kidKey = s => s.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').tr
 /* ---------- шапка ---------- */
 function renderHeader() {
   const h = new Date().getHours();
+  if (role === 'amir') { $('hello').textContent = h < 5 ? 'Доброй ночи, Амир' : h < 12 ? 'Доброе утро, Амир' : h < 18 ? 'Добрый день, Амир' : 'Добрый вечер, Амир';
+    if (loaded3d) { const nk = mk(new Date()), PR = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре']; $('sub').textContent = 'Тебе в ' + PR[new Date().getMonth()] + ': ' + money(amir3d(orders.filter(o => o.month === nk))) + ' ₸'; } return; }
   $('hello').textContent = h < 5 ? 'Доброй ночи, Асет' : h < 12 ? 'Доброе утро, Асет' : h < 18 ? 'Добрый день, Асет' : 'Добрый вечер, Асет';
   if (!loaded && !(typeof loaded3d !== 'undefined' && loaded3d)) return;
   const nowK = mk(new Date());
@@ -1269,6 +1275,13 @@ async function closeMonth(m, amount, btn) {
 }
 
 /* ---------- общий рендер ---------- */
+let role = 'owner'; try { if (store.get('role') === 'amir') role = 'amir'; } catch (e) {}
+function applyRole() {
+  const a = role === 'amir';
+  document.body.classList.toggle('role-amir', a);
+  $('sections').hidden = a;
+  if (a && SECTION_OF(view || '') !== 'print') go('p-orders');
+}
 const SECTION_OF = v => v === 'all' ? 'all' : v.startsWith('p-') ? 'print' : 'coach';
 const lastView = { coach: 'home', print: 'p-orders' };
 function render() {
@@ -1285,6 +1298,7 @@ function render() {
   if (view === 'settle') renderSettle();
 }
 function go(v) {
+  if (role === 'amir' && SECTION_OF(v) !== 'print') v = 'p-orders';   // Амиру — только 3D-печать
   view = v;
   document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; s.style.display = s.hidden ? '' : 'flex'; });
   playView();
@@ -1365,21 +1379,22 @@ async function apiLoad() {
   let res = null;
   try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json()); }
   catch (e) { onError({ code: 'server_unavailable' }); return; }
-  if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
+  if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; applyRole(); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
+  const r0 = res.role === 'amir' ? 'amir' : 'owner'; if (r0 !== role) { role = r0; try { store.set('role', r0 === 'amir' ? 'amir' : null); } catch (e) {} applyRole(); }
   if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
   if (res.valuesPrints) ingestPrints(res.valuesPrints);
   onData({ payload: { values: res.values } });
 }
 function askKey(err) {
   loaded = false; rows = []; $('feed').innerHTML = ''; $('fab').hidden = true;
-  setNotice(`<b>Вход</b><span>Введите ключ доступа. Он записан в таблице «Зарплата» на листе «Настройки» → «Ключ приложения». Вводится один раз на этом устройстве.</span>
+  setNotice(`<b>Вход</b><span>Введите ключ доступа. Его выдаёт владелец таблицы (лист «Настройки»). Вводится один раз на этом устройстве.</span>
     <form id="keyForm" class="row2"><input id="keyIn" class="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ключ"><button class="btn" type="submit">Войти</button></form>
     ${err ? '<span class="err">' + esc(err) + '</span>' : ''}`, true);
   $('keyForm').onsubmit = e => { e.preventDefault(); const v = $('keyIn').value.trim(); if (!v) return; store.set('appKey', v); setNotice('Проверяю ключ…'); src = 'api'; $('fab').hidden = !['home', 'p-orders'].includes(view); refreshNow(); };
 }
 
 async function boot() {
-  renderHeader();
+  renderHeader(); applyRole();
   let v0 = 'all'; try { v0 = store.get('view') || 'all'; } catch (e) {}
   const h = (location.hash || '').slice(1); if (h && document.getElementById('v-' + h)) v0 = h;
   go(document.getElementById('v-' + v0) ? v0 : 'all');
@@ -1582,10 +1597,10 @@ async function saveOp(del) {
 }
 
 /* =====================  РАЗДЕЛЫ И 3D-ПЕЧАТЬ  ===================== */
-const RANGE3D = "'3D-заказы'!A1:X";
+const RANGE3D = "'3D-заказы'!A1:Z";
 const C3 = ['ID', '№', 'Дата заказа', 'Месяц', 'Плановая дата', 'Клиент', 'Описание', 'Статус', 'Цена заказа, ₸', 'Предоплата, ₸',
   'Пластик, г (части через +)', 'Цена пластика, ₸/г', 'Дизайнер', 'Оплата дизайнеру', 'Валюта', 'Курс ₽→₸', 'Доля Асета, %', 'Рассчитались', 'Примечание', 'Источник',
-  'Передан клиенту (факт)', 'Сканирование, ₸', 'Сканировал', 'Состав (готово/всего)'];
+  'Передан клиенту (факт)', 'Сканирование, ₸', 'Сканировал', 'Состав (готово/всего)', 'Обработал', 'Доля Амира, %'];
 
 /* «Капибара 8/28; Сова 0/10» ↔ [{name, done, total}] */
 function parseItems(s) {
@@ -1604,7 +1619,8 @@ const ACTIVE = ['На согласовании', 'Моделируется', 'В
 const DONE = ['Передан клиенту'];
 const VOID = ['Возврат', 'Отменён'];
 const BLOCK = [...ACTIVE, 'Готов'];   // пока такие заказы есть, месяц с Тимуром не закрыть
-const ME = /^асет/i, TIMUR = /^тимур/i;
+const ME = /^асет/i, TIMUR = /^тимур/i, AMIR = /^амир/i;
+const amir3d = list => sum(list.filter(o => o.counts), o => o.amir);
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 let orders = [], loaded3d = false, pMonth = null, pFilter = 'all', ppPeriod = '12', dMonth = null, aMonth = null, editing = null, ordCur = '₽';
@@ -1623,7 +1639,8 @@ function ingest3d(values) {
       plPrice: g(r, 'Цена пластика, ₸/г') === '' ? 5 : num(g(r, 'Цена пластика, ₸/г')),
       des: g(r, 'Дизайнер'), desPay: num(g(r, 'Оплата дизайнеру')), cur: g(r, 'Валюта') || '₽',
       rate: g(r, 'Курс ₽→₸') === '' ? 5.5 : num(g(r, 'Курс ₽→₸')), share: g(r, 'Доля Асета, %') === '' ? 35 : num(g(r, 'Доля Асета, %')),
-      paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник'), items: parseItems(g(r, 'Состав (готово/всего)')) };
+      paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник'), items: parseItems(g(r, 'Состав (готово/всего)')),
+      handler: g(r, 'Обработал'), amirPct: g(r, 'Доля Амира, %') === '' ? null : num(g(r, 'Доля Амира, %')) };
     let m = g(r, 'Месяц').replace(/^'/, '');
     if (!/^\d{4}-\d{2}$/.test(m)) m = o.date ? mk(o.date) : '';
     o.month = m;
@@ -1640,8 +1657,11 @@ function calc3d(o) {
   o.scanHalf = o.scan / 2;
   o.net = (o.price || 0) - o.desT - o.material;   // скан оплачивается отдельно, сверх цены
   o.myShare = o.net * o.share / 100;
+  o.isAmir = AMIR.test(o.handler || '');   // заказ принял и обработал Амир: ему 10% (из моих 35%)
+  o.amirPct = o.isAmir ? (o.amirPct == null ? 10 : o.amirPct) : 0;
+  o.amir = o.net * o.amirPct / 100;
   o.mine = o.myShare + (o.isMeDes ? o.desT : 0) + (o.isMeScan ? o.scanHalf : 0);
-  o.partner = o.net - o.myShare + o.scanHalf + (TIMUR.test(o.scanner || '') ? o.scanHalf : 0);
+  o.partner = o.net - o.myShare - o.amir + o.scanHalf + (TIMUR.test(o.scanner || '') ? o.scanHalf : 0);
   o.void = VOID.includes(o.status);
   o.done = DONE.includes(o.status);
   o.handed = o.done;
@@ -1767,7 +1787,8 @@ function renderOrders() {
     ['В работе', money(mine3d(act)) + ' ₸', act.length + ' заказов' + (list.some(o => o.overdue) ? ' · ' + list.filter(o => o.overdue).length + ' просроч.' : '')],
     ['С Тимуром', (() => { const s = settle3d(pMonth); return s.payable ? money(s.sum) + ' ₸' : s.owed.length ? 'ждёт' : '—'; })(), (() => { const s = settle3d(pMonth); return s.payable ? 'можно закрыть месяц' : s.open.length ? 'не передано ещё ' + s.open.length : s.owed.length ? '' : 'рассчитались'; })()],
     ['Выручка заказов', money(revenue) + ' ₸', 'всего по месяцу'],
-    ['Пластик', (grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸']
+    ['Пластик', (grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸'],
+    ...(list.some(o => o.isAmir) || role === 'amir' ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir && !o.void).length + ' заказов обработал']] : [])
   ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   const q = kidKey($('pSearch').value || '');
   let show = q ? p3().filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no).includes(q)) : list;
@@ -1787,7 +1808,7 @@ const TCOLS = [
   ['status', 'Статус', o => STATUSES.findIndex(x => x[0] === o.status)], ['plan', 'Срок', o => o.plan ? o.plan.getTime() : 9e15], ['fact', 'Передан', o => o.fact ? o.fact.getTime() : 0],
   ['price', 'Цена', o => o.price || 0, 'r'], ['owes', 'Клиент должен', o => o.clientOwes, 'r'],
   ['grams', 'Пластик, г', o => o.grams, 'r'], ['des', 'Дизайн', o => o.desT, 'r'], ['scan', 'Скан', o => o.scan, 'r'], ['share', 'Доля', o => o.share, 'r'],
-  ['mine', 'Мне', o => o.counts ? o.mine : -1e12, 'r'], ['partner', 'Тимуру', o => o.counts ? o.partner : 0, 'r'], ['paid', 'Рассч.', o => o.paid ? 1 : 0]];
+  ['mine', 'Мне', o => o.counts ? o.mine : -1e12, 'r'], ['partner', 'Тимуру', o => o.counts ? o.partner : 0, 'r'], ['amir', 'Амиру', o => o.counts ? o.amir : 0, 'r'], ['paid', 'Рассч.', o => o.paid ? 1 : 0]];
 function renderTable() {
   const q = kidKey($('pSearch2').value || '');
   let show = $('pAllMonths').checked || q ? p3() : p3().filter(o => o.month === pMonth);
@@ -1808,12 +1829,12 @@ function renderTable() {
     <td class="r">${o.desT ? money(o.desT) + (o.isMeDes ? ' <span class="kbd">я</span>' : '') : ''}</td>
     <td class="r">${o.scan ? money(o.scan) + (o.isMeScan ? ' <span class="kbd">я</span>' : '') : ''}</td>
     <td class="r"><input class="pct" data-act="share" inputmode="decimal" value="${o.share}" aria-label="Доля, %"></td>
-    <td class="r mine ${o.mine < 0 ? 'neg' : ''}">${o.counts ? money(o.mine) : '—'}</td><td class="r">${o.counts ? money(o.partner) : '—'}</td>
+    <td class="r mine ${o.mine < 0 ? 'neg' : ''}">${o.counts ? money(o.mine) : '—'}</td><td class="r">${o.counts ? money(o.partner) : '—'}</td><td class="r">${o.counts && o.amir ? money(o.amir) : ''}</td>
     <td>${o.handed ? `<input type="checkbox" data-act="paid" ${o.paid ? 'checked' : ''} aria-label="Рассчитались">` : ''}</td></tr>`).join('');
   const cnt = show.filter(o => o.counts);
   const foot = `<tfoot><tr><td colspan="7">Итого: ${show.length} заказов</td><td class="r">${money(sum(cnt, o => o.price))}</td><td class="r">${money(sum(cnt, o => o.clientOwes))}</td>
-    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td class="r">${money(sum(cnt, o => o.scan))}</td><td></td><td class="r mine">${money(sum(cnt, o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td></td></tr></tfoot>`;
-  $('pTable').innerHTML = head + '<tbody>' + (body || `<tr><td colspan="16" style="text-align:center;color:var(--muted);padding:24px">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+ Новый заказ».'}</td></tr>`) + '</tbody>' + foot;
+    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td class="r">${money(sum(cnt, o => o.scan))}</td><td></td><td class="r mine">${money(sum(cnt, o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td class="r">${money(sum(cnt, o => o.amir))}</td><td></td></tr></tfoot>`;
+  $('pTable').innerHTML = head + '<tbody>' + (body || `<tr><td colspan="17" style="text-align:center;color:var(--muted);padding:24px">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+ Новый заказ».'}</td></tr>`) + '</tbody>' + foot;
   $('pTable').querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { tSort = { k: th.dataset.k, dir: tSort.k === th.dataset.k ? -tSort.dir : (th.classList.contains('r') ? -1 : 1) }; renderTable(); });
   $('pTable').querySelectorAll('tbody tr[data-id]').forEach(tr => tr.onclick = e => { if (e.target.closest('[data-act]')) return; openOrder(tr.dataset.id); renderTable(); });
   $('pTable').querySelectorAll('[data-act]').forEach(el => el.addEventListener('change', () => inlineSave(el)));
@@ -1850,6 +1871,7 @@ document.addEventListener('keydown', e => {
 function ordLine(o) {
   const flags = [];
   if (o.grams) flags.push((o.parts.length > 1 ? o.parts.length + ' печ. · ' : '') + money(o.grams) + ' г');
+  if (o.isAmir) flags.push('<span class="flag">обработал Амир' + (o.counts ? ' · ' + money(o.amir) + ' ₸' : '') + '</span>');
   if (o.des) flags.push('дизайн: ' + esc(o.des));
   if (o.clientOwes > 0 && o.pre > 0) flags.push('предоплата ' + money(o.pre));
   if (o.scan) flags.push('скан: ' + esc(o.scanner || '?') + ' ' + money(o.scan));
@@ -1883,11 +1905,12 @@ function renderPStats() {
     ['Мой доход', money(sum(per, p => p.v)) + ' ₸', periodName(ppPeriod, ms)],
     ['В среднем в месяц', money(avg) + ' ₸', 'без текущего'],
     ['Заказов', String(list.length), 'средний чек ' + money(list.length ? rev / list.length : 0) + ' ₸'],
-    ['Пластик', (sum(list, o => o.grams) / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸']
+    ['Пластик', (sum(list, o => o.grams) / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸'],
+    ...(list.some(o => o.isAmir) || role === 'amir' ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir).length + ' заказов · ' + periodName(ppPeriod, ms)]] : [])
   ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   barChart($('ppChart'), per, { avg, sel: pMonth, money: true, click: k => { pMonth = k; go('p-orders'); } });
   const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(list.filter(o => o.isMeDes), o => o.desT), 'var(--accent)'],
-    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
+    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Амиру', sum(list, o => o.amir), 'var(--amber)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
   const mx = Math.max(...parts.map(x => Math.abs(x[1])), 1);
   renderProf(list);
   $('ppMix').innerHTML = parts.map(([t, v, c]) => `<div class="hb"><span>${t}</span><b class="num">${money(v)} ₸${rev ? ' · ' + Math.round(v / rev * 100) + '%' : ''}</b><div class="track"><i style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${c}"></i></div></div>`).join('') || '<div class="hint">Нет данных.</div>';
@@ -2034,15 +2057,27 @@ function ingestPrints(values) {
 }
 const prKey = s => String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\.(stl|3mf|gcode|obj)(\.3mf)?$/g, '').replace(/[_\-–]+/g, ' ')
   .replace(/\d+\s*(шт|pcs)/g, ' ').replace(/(финал|final|копия|copy)/g, ' ').replace(/\bv\d+\b/g, ' ').replace(/[\d.()]+/g, ' ').replace(/\s+/g, ' ').trim();
+function pager(id, afterId, total, page, size, onPage, onSize) {
+  let pg = $(id); if (!pg) { pg = document.createElement('div'); pg.id = id; pg.className = 'pr-pager'; $(afterId).after(pg); }
+  const pages = Math.max(1, Math.ceil(total / size));
+  pg.hidden = total <= (onSize ? 10 : size);
+  pg.innerHTML = (onSize ? `<label>На странице: <select aria-label="Строк на странице">${[10, 25, 50].map(n => `<option${n === size ? ' selected' : ''}>${n}</option>`).join('')}</select></label>` : '<span></span>') +
+    `<span class="pr-pg"><button class="btn sm ghost" type="button" data-d="-1"${page === 0 ? ' disabled' : ''}>← Новее</button><span>${total ? page * size + 1 : 0}–${Math.min(total, page * size + size)} из ${total}</span><button class="btn sm ghost" type="button" data-d="1"${page >= pages - 1 ? ' disabled' : ''}>Старее →</button></span>`;
+  if (onSize) pg.querySelector('select').onchange = e => onSize(Number(e.target.value));
+  pg.querySelectorAll('button').forEach(b => b.onclick = () => { onPage(page + Number(b.dataset.d)); const top = pg.closest('.card'); if (top) top.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+}
+let prDPage = 0;
 let prPage = 0, prSize = 10; try { const z = Number(store.get('prSize')); if ([10, 25, 50].includes(z)) prSize = z; } catch (e) {}
 const prTs = p => { const m = String(p.start || '').match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{1,2}):(\d{2})/) || String(p.end || '').match(/(\d{2})\.(\d{2})()\s+(\d{1,2}):(\d{2})/); return m ? new Date(+(m[3] || new Date().getFullYear()), +m[2] - 1, +m[1], +m[4], +m[5]).getTime() : 0; };
 function renderPrints() {
   const un = prints.filter(p => p.how === 'не разобрано').sort((a, b) => (prTs(b) - prTs(a)) || (b.row - a.row));   // новые сверху
-  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено' && p.how !== 'удалено').reverse();
+  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено' && p.how !== 'удалено').reverse().sort((a, b) => prTs(b) - prTs(a));   // новые сверху
   const ordName = p => { const o = p.order && p3().find(x => x.id === p.order); if (!o) return ''; const t = ((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).replace(/\s+/g, ' ').trim(); return t.length > 34 ? t.slice(0, 33).trimEnd() + '…' : t; };
   const tot = sum(doneList.filter(p => p.no), p => p.grams);
   $('prDoneT').textContent = 'Уже привязано' + (doneList.length ? ' · ' + doneList.length : '');
-  $('prLog').innerHTML = doneList.length ? doneList.map(p => {
+  const DS = 25, dPages = Math.max(1, Math.ceil(doneList.length / DS)); if (prDPage >= dPages) prDPage = dPages - 1; if (prDPage < 0) prDPage = 0;
+  pager('prDPager', 'prLog', doneList.length, prDPage, DS, p => { prDPage = p; renderPrints(); });
+  $('prLog').innerHTML = doneList.length ? doneList.slice(prDPage * DS, prDPage * DS + DS).map(p => {
     const res = p.how === 'без граммов' ? 'граммов нет: ' + (p.note || 'не учтено') : p.how === 'пропущено' ? 'пропущено (не для заказа)' : p.no ? '→ заказ №' + p.no + (ordName(p) ? ' · ' + ordName(p) : '') + ' (' + p.how + ')' : p.how;
     return `<div class="op small"><span class="who">${esc(p.name || 'без названия')}</span><span class="amt rec num">${p.grams ? money(p.grams) + ' г' : '—'}</span><div class="meta"><span>${esc(p.printer)}</span><span>${esc(p.end || p.start)}</span><span class="${p.no ? 'flag ok' : 'flag'}">${esc(res)}</span>${p.note && p.no ? '<span>' + esc(p.note) + '</span>' : ''}<button class="btn sm ghost pr-undo" type="button" data-pid="${esc(p.id)}" title="Убрать печать из учёта${p.no ? ' и вычесть граммы из заказа' : ''}">Удалить</button></div></div>`; }).join('') + (tot ? `<div class="op small"><span class="who"><b>Всего привязано</b></span><span class="amt num">${money(tot)} г</span></div>` : '')
     : '<div class="empty" style="border:0">Пока нет завершённых печатей «на заказ» после подключения.</div>';
@@ -2065,12 +2100,7 @@ function renderPrints() {
   const opts = act.map(o => `<option value="${esc(o.id)}">№${o.no} ${esc((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).slice(0, 70)} (${mLabel(o.month).toLowerCase()})</option>`).join('');
   const pages = Math.max(1, Math.ceil(un.length / prSize)); if (prPage >= pages) prPage = pages - 1; if (prPage < 0) prPage = 0;
   const shown = un.slice(prPage * prSize, prPage * prSize + prSize);
-  let pg = $('prPager'); if (!pg) { pg = document.createElement('div'); pg.id = 'prPager'; pg.className = 'pr-pager'; $('prList').after(pg); }
-  pg.hidden = un.length <= 10;
-  pg.innerHTML = `<label>На странице: <select aria-label="Строк на странице">${[10, 25, 50].map(n => `<option${n === prSize ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
-    <span class="pr-pg"><button class="btn sm ghost" type="button" data-d="-1"${prPage === 0 ? ' disabled' : ''}>← Новее</button><span>${prPage * prSize + 1}–${Math.min(un.length, prPage * prSize + prSize)} из ${un.length}</span><button class="btn sm ghost" type="button" data-d="1"${prPage >= pages - 1 ? ' disabled' : ''}>Старее →</button></span>`;
-  pg.querySelector('select').onchange = e => { prSize = Number(e.target.value); prPage = 0; try { store.set('prSize', String(prSize)); } catch (x) {} renderPrints(); };
-  pg.querySelectorAll('button').forEach(b => b.onclick = () => { prPage += Number(b.dataset.d); renderPrints(); });
+  pager('prPager', 'prList', un.length, prPage, prSize, p => { prPage = p; renderPrints(); }, z => { prSize = z; prPage = 0; try { store.set('prSize', String(z)); } catch (x) {} renderPrints(); });
   $('prList').innerHTML = shown.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
     <div class="pr-h"><b>${esc(p.name || 'без названия')}</b><span class="num">${money(p.grams)} г</span></div>
     <div class="pr-m">${esc(p.printer)} · ${esc(p.start)}${p.share && p.share !== '1' ? ' · <span class="flag bad">напечатано ' + Math.round(num(p.share) * 100) + '%</span>' : ''}</div>
@@ -2178,7 +2208,7 @@ async function saveOrderRow(o, patch) {
       // проверяем, что строка на месте (таблицу могли поменять)
       const chk = await mcp.callTool(SERVER, 'get_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}` }, { cache: false });
       const v = payloadValues(chk); if (!v || !v[0] || v[0][0] !== o.id) throw { code: 'moved', message: 'Таблица изменилась. Нажмите «Обновить» и повторите.' };
-      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:X${o.row}`, values: [row] });
+      return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'3D-заказы'!A${o.row}:Z${o.row}`, values: [row] });
     }
     return mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'3D-заказы'!A1", values: [row] });
   }
@@ -2205,7 +2235,8 @@ function openOrder(id) {
   $('oPrice').value = o && o.price != null ? o.price : '';
   $('oPre').value = o && o.pre ? o.pre : '';
   $('oPlPrice').value = o ? o.plPrice : (last ? last.plPrice : 5);
-  $('oShare').value = o ? o.share : (last ? last.share : 35);
+  $('oAmir').checked = o ? o.isAmir : role === 'amir';
+  $('oShare').value = o ? o.share : ($('oAmir').checked ? 25 : 35);
   $('oDes').value = o ? o.des : '';
   $('oDesPay').value = o && o.desPay ? o.desPay : '';
   ordCur = o && o.desPay ? o.cur : '₽';
@@ -2226,7 +2257,8 @@ function openOrder(id) {
 function formOrder() {
   const o = { parts: oParts, plPrice: num($('oPlPrice').value) || 0, desPay: num($('oDesPay').value), cur: ordCur, rate: num($('oRate').value) || 0,
     des: $('oDes').value.trim(), price: $('oPrice').value.trim() === '' ? null : num($('oPrice').value), pre: num($('oPre').value),
-    share: num($('oShare').value), status: oStatus, scan: num($('oScan').value), scanner: $('oScanner').value.trim() };
+    share: num($('oShare').value), status: oStatus, scan: num($('oScan').value), scanner: $('oScanner').value.trim(),
+    handler: $('oAmir').checked ? 'Амир' : '', amirPct: editing && editing.isAmir && $('oAmir').checked ? editing.amirPct : null };
   return calc3d(o);
 }
 function drawOrderForm() {
@@ -2241,10 +2273,11 @@ function drawOrderForm() {
   const line = (t, v, cls) => `<span>${t}</span><span class="r ${cls || ''}">${v}</span>`;
   $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы посчитать доли.</span><span></span>' :
     line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line(f.isMeDes ? 'Дизайн (мне)' : 'Дизайнеру', '−' + money(f.desT) + ' ₸') : '') +
-    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
+    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isAmir ? line('Амиру ' + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
     (f.scan ? line('Скан (отдельно)', money(f.scan) + ' ₸') : '') + (f.pre ? line('Клиент ещё должен', money(Math.max(f.price + f.scan - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.mine) + ' ₸', 'tot');
 }
 ['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate', 'oScan', 'oScanner'].forEach(id => $(id).addEventListener('input', drawOrderForm));
+$('oAmir').addEventListener('change', () => { const v = num($('oShare').value); if ($('oAmir').checked && (v === 35 || !$('oShare').value)) $('oShare').value = 25; if (!$('oAmir').checked && v === 25) $('oShare').value = 35; drawOrderForm(); });
 $('oCur').querySelectorAll('button').forEach(b => b.onclick = () => { ordCur = b.dataset.c; drawOrderForm(); });
 /* состав заказа: виды, сколько нужно и сколько готово */
 function drawItems() {
@@ -2292,7 +2325,8 @@ $('ordForm').addEventListener('submit', async e => {
     'Цена пластика, ₸/г': n($('oPlPrice').value), 'Дизайнер': $('oDes').value.trim(), 'Оплата дизайнеру': n($('oDesPay').value),
     'Валюта': $('oDesPay').value.trim() ? ordCur : '', 'Курс ₽→₸': n($('oRate').value), 'Доля Асета, %': n($('oShare').value),
     'Рассчитались': $('oPaid').checked ? (o && o.paid ? o.paid : fmtDate(new Date())) : '', 'Примечание': $('oNote').value.trim(),
-    'Источник': o ? (o.src || 'Приложение') : 'Приложение', 'Состав (готово/всего)': itemsText(oItems) };
+    'Источник': o ? (o.src || 'Приложение') : (role === 'amir' ? 'Приложение (Амир)' : 'Приложение'), 'Состав (готово/всего)': itemsText(oItems),
+    'Обработал': $('oAmir').checked ? 'Амир' : '', 'Доля Амира, %': $('oAmir').checked ? String(o && o.isAmir ? o.amirPct : 10).replace('.', ',') : '' };
   $('oSave').disabled = true; $('oSave').textContent = 'Сохраняю…';
   try {
     await saveOrderRow(o || { raw: [] }, patch);
