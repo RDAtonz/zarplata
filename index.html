@@ -564,6 +564,10 @@ td.mine { color: var(--accent); font-weight: 600; }
 .pr-a { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .pr-a select { flex: 1 1 260px; min-width: 0; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); }
 /* сотрудники (Амир, Алина): только список своих заказов и своя зарплата */
+/* до входа на сайте — только поле ключа, без имён и названий */
+body.locked .wrap > *:not(#notice), body.locked .side, body.locked .side-tg, body.locked .tabbar, body.locked .fab { display: none !important; }
+body.locked .wrap { min-height: 100vh; justify-content: center; }
+body.locked .notice { background: transparent; border: 0; box-shadow: none; padding: 0; }
 body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, body.role-staff .own-only { display: none !important; }
 </style>
 
@@ -1374,18 +1378,20 @@ async function apiLoad() {
   let res = null;
   try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json()); }
   catch (e) { onError({ code: 'server_unavailable' }); return; }
-  if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; limited = false; applyRole(); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
+  if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; limited = false; applyRole(); askKey('Неверный ключ'); } else onError({ code: 'tool_error', message: res.error }); return; }
   const lim = res.role === 'timur'; if (lim !== limited) { limited = lim; try { store.set('role', lim ? 'timur' : null); } catch (e) {} applyRole(); }
   const r0 = STAFF_NAME[res.role] ? res.role : 'owner'; if (r0 !== role) { role = r0; try { store.set('role', r0 === 'owner' ? null : r0); } catch (e) {} applyRole(); }
+  setLocked(false);
   if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
   if (res.valuesPrints) ingestPrints(res.valuesPrints);
   onData({ payload: { values: res.values } });
 }
+function setLocked(on) { document.body.classList.toggle('locked', on); document.title = on ? 'Вход' : 'Моя зарплата'; }
 function askKey(err) {
+  setLocked(true);
   loaded = false; rows = []; $('feed').innerHTML = ''; $('fab').hidden = true;
-  setNotice(`<b>Вход</b><span>Введите ключ доступа. Его выдаёт владелец таблицы (лист «Настройки»). Вводится один раз на этом устройстве.</span>
-    <form id="keyForm" class="row2"><input id="keyIn" class="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ключ"><button class="btn" type="submit">Войти</button></form>
-    ${err ? '<span class="err">' + esc(err) + '</span>' : ''}`, true);
+  setNotice(`<form id="keyForm" class="row2"><input id="keyIn" class="search" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ключ"><button class="btn" type="submit">Войти</button></form>
+    ${err ? '<span class="err">' + esc(err) + '</span>' : ''}`, false);
   $('keyForm').onsubmit = e => { e.preventDefault(); const v = $('keyIn').value.trim(); if (!v) return; store.set('appKey', v); setNotice('Проверяю ключ…'); src = 'api'; $('fab').hidden = !['home', 'p-orders'].includes(view); refreshNow(); };
 }
 
@@ -1396,7 +1402,7 @@ async function boot() {
   go(document.getElementById('v-' + v0) ? v0 : 'all');
   const inClaude = !!(window.claude && window.claude.use);
   if (!inClaude && API_URL) {
-    src = 'api'; $('fab').hidden = !['home', 'p-orders'].includes(view);
+    src = 'api'; setLocked(true); $('fab').hidden = !['home', 'p-orders'].includes(view);
     await apiLoad();
     setInterval(() => { if (document.visibilityState === 'visible' && store.get('appKey')) apiLoad(); }, 60000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && store.get('appKey')) apiLoad(); });
