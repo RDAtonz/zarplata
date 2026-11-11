@@ -1002,6 +1002,7 @@ const kidKey = s => s.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').tr
 function renderHeader() {
   const h = new Date().getHours();
   $('logoutBtn').hidden = src !== 'api';
+  if (limited) { $('hello').textContent = (h < 5 ? 'Доброй ночи, ' : h < 12 ? 'Доброе утро, ' : h < 18 ? 'Добрый день, ' : 'Добрый вечер, ') + 'Тимур'; $('sub').textContent = '3D-печать'; return; }
   if (role !== 'owner') { $('hello').textContent = (h < 5 ? 'Доброй ночи, ' : h < 12 ? 'Доброе утро, ' : h < 18 ? 'Добрый день, ' : 'Добрый вечер, ') + (STAFF_NAME[role] || '');
     if (loaded3d) { const nk = mk(new Date()), PR = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре']; $('sub').textContent = 'Тебе в ' + PR[new Date().getMonth()] + ': ' + money(staff3d(orders.filter(o => o.month === nk))) + ' ₸'; } return; }
   $('hello').textContent = h < 5 ? 'Доброй ночи, Асет' : h < 12 ? 'Доброе утро, Асет' : h < 18 ? 'Добрый день, Асет' : 'Добрый вечер, Асет';
@@ -1266,11 +1267,14 @@ async function closeMonth(m, amount, btn) {
 /* ---------- общий рендер ---------- */
 const STAFF_NAME = { amir: 'Амир', alina: 'Алина' };
 let role = 'owner'; try { const sr = store.get('role'); if (STAFF_NAME[sr]) role = sr; } catch (e) {}
+let limited = false; try { limited = store.get('role') === 'timur'; } catch (e) {}   // Тимур: всё по 3D-печати, без тренерства и общей статистики
 function applyRole() {
   const a = role !== 'owner';
   document.body.classList.toggle('role-staff', a);
-  $('sections').hidden = a;
+  document.body.classList.toggle('role-timur', limited);
+  $('sections').hidden = a || limited;
   if (a && view !== 'p-orders') go('p-orders');
+  else if (limited && !view.startsWith('p-')) go('p-orders');
 }
 const SECTION_OF = v => v === 'all' ? 'all' : v.startsWith('p-') ? 'print' : 'coach';
 const lastView = { coach: 'home', print: 'p-orders' };
@@ -1289,6 +1293,7 @@ function render() {
 }
 function go(v) {
   if (role !== 'owner') v = 'p-orders';   // Амиру и Алине — только список заказов
+  if (limited && !v.startsWith('p-')) v = 'p-orders';
   view = v;
   document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; s.style.display = s.hidden ? '' : 'flex'; });
   playView();
@@ -1296,7 +1301,7 @@ function go(v) {
   const sec = SECTION_OF(v); if (sec !== 'all') lastView[sec] = v;
   $('sections').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === sec)));
   $('tabbar').hidden = sec === 'all' || role !== 'owner'; $('navCoach').hidden = sec !== 'coach'; $('navPrint').hidden = sec !== 'print';
-  $('fab').hidden = !['home', 'p-orders'].includes(v) || !src;
+  $('fab').hidden = !['home', 'p-orders'].includes(v) || !src || (limited && v !== 'p-orders');
   try { store.set('view', v); } catch (e) {}
   document.body.classList.toggle('wide', v === 'p-orders' && isWide() && role === 'owner');
   document.body.classList.toggle('desk', isWide()); placeSide();
@@ -1369,7 +1374,8 @@ async function apiLoad() {
   let res = null;
   try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json()); }
   catch (e) { onError({ code: 'server_unavailable' }); return; }
-  if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; applyRole(); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
+  if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; limited = false; applyRole(); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
+  const lim = res.role === 'timur'; if (lim !== limited) { limited = lim; try { store.set('role', lim ? 'timur' : null); } catch (e) {} applyRole(); }
   const r0 = STAFF_NAME[res.role] ? res.role : 'owner'; if (r0 !== role) { role = r0; try { store.set('role', r0 === 'owner' ? null : r0); } catch (e) {} applyRole(); }
   if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
   if (res.valuesPrints) ingestPrints(res.valuesPrints);
@@ -1788,6 +1794,7 @@ function renderOrders() {
   const m = mine3d(list), done = mine3d(list.filter(o => o.done)), act = list.filter(o => ACTIVE.includes(o.status));
   countTo($('pMine'), m, '<small>₸</small>');
   if (role !== 'owner') document.querySelector('#v-p-orders .hero .label').textContent = 'Моя зарплата за месяц';
+  else if (limited) document.querySelector('#v-p-orders .hero .label').textContent = 'Доля Асета за месяц';
   const grams = sum(list, o => o.grams), revenue = sum(list.filter(o => o.counts), o => o.price + o.scan);
   $('pKpi').innerHTML = [
     ['Передано клиентам', money(done) + ' ₸', list.filter(o => o.done).length + ' заказов'],
