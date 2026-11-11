@@ -1,20 +1,7 @@
 <!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Зарплата">
-<meta name="theme-color" content="#F3F5F1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0E1411" media="(prefers-color-scheme: dark)">
-<meta name="robots" content="noindex">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" href="icon-192.png">
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}@media (prefers-color-scheme: dark){:root{color-scheme:dark}}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Моя зарплата"><meta name="theme-color" content="#EDF1EE" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090D0B" media="(prefers-color-scheme: dark)"><meta name="robots" content="noindex"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Моя зарплата</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Geologica:wght@500;600;700&display=swap">
 <style>
@@ -576,9 +563,9 @@ td.mine { color: var(--accent); font-weight: 600; }
 .pr-m { font-size: 12.5px; color: var(--muted); }
 .pr-a { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .pr-a select { flex: 1 1 260px; min-width: 0; font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); }
+/* сотрудники (Амир, Алина): только список своих заказов и своя зарплата */
+body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, body.role-staff .own-only { display: none !important; }
 </style>
-</head>
-<body>
 
 <aside class="side" id="side" hidden></aside>
 <button class="side-tg" id="sideTg" type="button" aria-label="Скрыть меню" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
@@ -590,6 +577,7 @@ td.mine { color: var(--accent); font-weight: 600; }
     </div>
     <div class="top-actions">
       <button class="icon-btn" id="goalBtn" aria-label="Календарь сроков заказов" title="Сроки заказов"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></button>
+      <button class="icon-btn" id="logoutBtn" aria-label="Выйти из аккаунта" title="Выйти из аккаунта" hidden><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
       <button class="icon-btn" id="refresh" aria-label="Обновить данные"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
     </div>
   </header>
@@ -854,9 +842,9 @@ td.mine { color: var(--accent); font-weight: 600; }
     </div>
     <div class="row2">
       <div class="field"><label for="oPlPrice">Цена пластика, ₸/г</label><input id="oPlPrice" inputmode="decimal"></div>
-      <div class="field"><label for="oShare">Моя доля в этом заказе, %</label><input id="oShare" inputmode="decimal"></div>
+      <div class="field own-only"><label for="oShare">Моя доля в этом заказе, %</label><input id="oShare" inputmode="decimal"></div>
     </div>
-    <label class="check amir-t"><input type="checkbox" id="oAmir"> <span><b>Обработал Амир</b> — моя доля 25%, Амиру 10%</span></label>
+    <div class="field own-only"><label for="oHandler">Кто обработал заказ</label><select id="oHandler"><option value="">Без помощника: моя доля 35%</option><option value="Амир">Амир: мне 25%, Амиру 10%</option><option value="Алина">Алина: мне 25%, Алине 10%</option></select></div>
     <div class="grp">Дизайн</div>
     <div class="row2">
       <div class="field"><label for="oDes">Дизайнер</label><input id="oDes" list="oDesigners" placeholder="Нет / Рада / Асет"></div>
@@ -871,16 +859,16 @@ td.mine { color: var(--accent); font-weight: 600; }
       <div class="field"><label for="oScan">Сканирование, ₸ (отдельно от цены)</label><input id="oScan" inputmode="decimal" placeholder="0 — не было"></div>
       <div class="field"><label for="oScanner">Кто сканировал</label><input id="oScanner" list="oScanners" placeholder="Асет / …"></div>
     </div>
-    <div class="status" style="text-align:left;margin-top:-6px">Скан клиент оплачивает отдельно, сверх цены заказа. Деньги за скан делятся 50/50: половина Тимуру, половина тому, кто сканировал.</div>
+    <div class="status own-only" style="text-align:left;margin-top:-6px">Скан клиент оплачивает отдельно, сверх цены заказа. Деньги за скан делятся 50/50: половина Тимуру, половина тому, кто сканировал.</div>
     <div class="calc" id="oCalc"></div>
     <div class="grp">Сроки</div>
     <div class="row2">
       <div class="field"><label for="oPlan">Плановая дата</label><input id="oPlan" type="date"></div>
       <div class="field"><label for="oFact">Передан клиенту (факт)</label><input id="oFact" type="date"></div>
     </div>
-    <div class="grp">Ещё</div>
-    <div class="field"><label class="check"><input type="checkbox" id="oPaid"> Тимур со мной рассчитался</label></div>
-    <div class="field"><label for="oNote">Примечание</label><input id="oNote" placeholder="Необязательно"></div>
+    <div class="grp own-only">Ещё</div>
+    <div class="field own-only"><label class="check"><input type="checkbox" id="oPaid"> Тимур со мной рассчитался</label></div>
+    <div class="field own-only"><label for="oNote">Примечание</label><input id="oNote" placeholder="Необязательно"></div>
     <div class="err" id="oErr" hidden></div>
     <div class="row2">
       <button type="button" class="btn ghost" id="oCancel">Закрыть</button>
@@ -928,7 +916,7 @@ td.mine { color: var(--accent); font-weight: 600; }
 
 <script>
 const SHEET_ID = '1B68sIA2xlK9v95zkupvEP8iahwqMCWFFJqG8pA0tZTo';
-const API_URL = "https://script.google.com/macros/s/AKfycbzmjShQMZKGDjF_XWcvEA80tWXthpz98OFBBW_1HPpsfcLNzjaLtiMCiIn34nwx4FC5ow/exec"; // ссылка на веб-приложение Google (для версии на GitHub)
+const API_URL = 'https://script.google.com/macros/s/AKfycbzmjShQMZKGDjF_XWcvEA80tWXthpz98OFBBW_1HPpsfcLNzjaLtiMCiIn34nwx4FC5ow/exec'; // ссылка на веб-приложение Google (для версии на GitHub)
 let src = null; // 'mcp' — внутри Claude, 'api' — на GitHub с ключом
 const SERVER = 'Google Sheets';
 const RANGE = "'Операции'!A1:M";
@@ -1013,8 +1001,9 @@ const kidKey = s => s.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').tr
 /* ---------- шапка ---------- */
 function renderHeader() {
   const h = new Date().getHours();
-  if (role === 'amir') { $('hello').textContent = h < 5 ? 'Доброй ночи, Амир' : h < 12 ? 'Доброе утро, Амир' : h < 18 ? 'Добрый день, Амир' : 'Добрый вечер, Амир';
-    if (loaded3d) { const nk = mk(new Date()), PR = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре']; $('sub').textContent = 'Тебе в ' + PR[new Date().getMonth()] + ': ' + money(amir3d(orders.filter(o => o.month === nk))) + ' ₸'; } return; }
+  $('logoutBtn').hidden = src !== 'api';
+  if (role !== 'owner') { $('hello').textContent = (h < 5 ? 'Доброй ночи, ' : h < 12 ? 'Доброе утро, ' : h < 18 ? 'Добрый день, ' : 'Добрый вечер, ') + (STAFF_NAME[role] || '');
+    if (loaded3d) { const nk = mk(new Date()), PR = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре']; $('sub').textContent = 'Тебе в ' + PR[new Date().getMonth()] + ': ' + money(staff3d(orders.filter(o => o.month === nk))) + ' ₸'; } return; }
   $('hello').textContent = h < 5 ? 'Доброй ночи, Асет' : h < 12 ? 'Доброе утро, Асет' : h < 18 ? 'Добрый день, Асет' : 'Добрый вечер, Асет';
   if (!loaded && !(typeof loaded3d !== 'undefined' && loaded3d)) return;
   const nowK = mk(new Date());
@@ -1275,12 +1264,13 @@ async function closeMonth(m, amount, btn) {
 }
 
 /* ---------- общий рендер ---------- */
-let role = 'owner'; try { if (store.get('role') === 'amir') role = 'amir'; } catch (e) {}
+const STAFF_NAME = { amir: 'Амир', alina: 'Алина' };
+let role = 'owner'; try { const sr = store.get('role'); if (STAFF_NAME[sr]) role = sr; } catch (e) {}
 function applyRole() {
-  const a = role === 'amir';
-  document.body.classList.toggle('role-amir', a);
+  const a = role !== 'owner';
+  document.body.classList.toggle('role-staff', a);
   $('sections').hidden = a;
-  if (a && SECTION_OF(view || '') !== 'print') go('p-orders');
+  if (a && view !== 'p-orders') go('p-orders');
 }
 const SECTION_OF = v => v === 'all' ? 'all' : v.startsWith('p-') ? 'print' : 'coach';
 const lastView = { coach: 'home', print: 'p-orders' };
@@ -1298,17 +1288,17 @@ function render() {
   if (view === 'settle') renderSettle();
 }
 function go(v) {
-  if (role === 'amir' && SECTION_OF(v) !== 'print') v = 'p-orders';   // Амиру — только 3D-печать
+  if (role !== 'owner') v = 'p-orders';   // Амиру и Алине — только список заказов
   view = v;
   document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; s.style.display = s.hidden ? '' : 'flex'; });
   playView();
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
   const sec = SECTION_OF(v); if (sec !== 'all') lastView[sec] = v;
   $('sections').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === sec)));
-  $('tabbar').hidden = sec === 'all'; $('navCoach').hidden = sec !== 'coach'; $('navPrint').hidden = sec !== 'print';
+  $('tabbar').hidden = sec === 'all' || role !== 'owner'; $('navCoach').hidden = sec !== 'coach'; $('navPrint').hidden = sec !== 'print';
   $('fab').hidden = !['home', 'p-orders'].includes(v) || !src;
   try { store.set('view', v); } catch (e) {}
-  document.body.classList.toggle('wide', v === 'p-orders' && isWide());
+  document.body.classList.toggle('wide', v === 'p-orders' && isWide() && role === 'owner');
   document.body.classList.toggle('desk', isWide()); placeSide();
   window.scrollTo(0, 0);
   render();
@@ -1380,7 +1370,7 @@ async function apiLoad() {
   try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json()); }
   catch (e) { onError({ code: 'server_unavailable' }); return; }
   if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; applyRole(); askKey('Ключ не подошёл. Проверьте его на листе «Настройки».'); } else onError({ code: 'tool_error', message: res.error }); return; }
-  const r0 = res.role === 'amir' ? 'amir' : 'owner'; if (r0 !== role) { role = r0; try { store.set('role', r0 === 'amir' ? 'amir' : null); } catch (e) {} applyRole(); }
+  const r0 = STAFF_NAME[res.role] ? res.role : 'owner'; if (r0 !== role) { role = r0; try { store.set('role', r0 === 'owner' ? null : r0); } catch (e) {} applyRole(); }
   if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
   if (res.valuesPrints) ingestPrints(res.valuesPrints);
   onData({ payload: { values: res.values } });
@@ -1471,6 +1461,12 @@ function syncForm() {
   $('fWho').placeholder = t === 'Расчёт' || t === 'Наличные' ? 'Например: за октябрь' : t === 'Корректировка' ? 'Например: долг Айдара' : 'Необязательно';
 }
 $('fType').onchange = syncForm;
+let logoutT = 0;
+$('logoutBtn').onclick = () => {
+  const b = $('logoutBtn');
+  if (!b.classList.contains('arm')) { b.classList.add('arm'); b.title = 'Нажмите ещё раз, чтобы выйти'; b.style.background = 'var(--surface-2)'; b.style.borderColor = 'var(--bad, #c0392b)'; $('status').textContent = 'Нажмите кнопку выхода ещё раз, чтобы выйти'; logoutT = setTimeout(() => { b.classList.remove('arm'); b.title = 'Выйти из аккаунта'; b.style.background = ''; b.style.borderColor = ''; }, 4000); return; }
+  clearTimeout(logoutT); store.set('appKey', null); store.set('role', null); b.disabled = true; setTimeout(() => location.reload(), 250);
+};
 $('fab').onclick = () => {
   if (view === 'p-orders') { openOrder(null); return; }
   const d = new Date(); $('fDate').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -1619,8 +1615,10 @@ const ACTIVE = ['На согласовании', 'Моделируется', 'В
 const DONE = ['Передан клиенту'];
 const VOID = ['Возврат', 'Отменён'];
 const BLOCK = [...ACTIVE, 'Готов'];   // пока такие заказы есть, месяц с Тимуром не закрыть
-const ME = /^асет/i, TIMUR = /^тимур/i, AMIR = /^амир/i;
-const amir3d = list => sum(list.filter(o => o.counts), o => o.amir);
+const ME = /^асет/i, TIMUR = /^тимур/i, AMIR = /^амир/i, ALINA = /^алина/i;
+const staff3d = list => sum(list.filter(o => o.counts && o.isStaff), o => o.amir);   // зарплата тех, кто обработал заказы (Амир и Алина вместе)
+const amir3d = list => sum(list.filter(o => o.counts && o.isAmir), o => o.amir);
+const alina3d = list => sum(list.filter(o => o.counts && o.isAlina), o => o.amir);
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 let orders = [], loaded3d = false, pMonth = null, pFilter = 'all', ppPeriod = '12', dMonth = null, aMonth = null, editing = null, ordCur = '₽';
@@ -1629,6 +1627,7 @@ function ingest3d(values) {
   if (!Array.isArray(values) || !values.length) { orders = []; return; }
   const head = values[0].map(h => String(h).trim());
   const ix = Object.fromEntries(C3.map(n => [n, head.indexOf(n)]));
+  const sIx = head.indexOf('Зарплата, ₸');   // есть только у сотрудников: сервер сам посчитал им зарплату
   const g = (r, n) => ix[n] >= 0 ? String(r[ix[n]] ?? '').trim() : '';
   orders = values.slice(1).map((r, i) => {
     const o = { row: i + 2, raw: r, id: g(r, 'ID'), no: num(g(r, '№')), date: parseDate(g(r, 'Дата заказа')), plan: parseDate(g(r, 'Плановая дата')),
@@ -1640,7 +1639,8 @@ function ingest3d(values) {
       des: g(r, 'Дизайнер'), desPay: num(g(r, 'Оплата дизайнеру')), cur: g(r, 'Валюта') || '₽',
       rate: g(r, 'Курс ₽→₸') === '' ? 5.5 : num(g(r, 'Курс ₽→₸')), share: g(r, 'Доля Асета, %') === '' ? 35 : num(g(r, 'Доля Асета, %')),
       paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник'), items: parseItems(g(r, 'Состав (готово/всего)')),
-      handler: g(r, 'Обработал'), amirPct: g(r, 'Доля Амира, %') === '' ? null : num(g(r, 'Доля Амира, %')) };
+      handler: g(r, 'Обработал'), amirPct: g(r, 'Доля Амира, %') === '' ? null : num(g(r, 'Доля Амира, %')),
+      staffView: sIx >= 0, salary: sIx >= 0 && r[sIx] !== '' && r[sIx] != null ? num(String(r[sIx])) : null };
     let m = g(r, 'Месяц').replace(/^'/, '');
     if (!/^\d{4}-\d{2}$/.test(m)) m = o.date ? mk(o.date) : '';
     o.month = m;
@@ -1657,8 +1657,9 @@ function calc3d(o) {
   o.scanHalf = o.scan / 2;
   o.net = (o.price || 0) - o.desT - o.material;   // скан оплачивается отдельно, сверх цены
   o.myShare = o.net * o.share / 100;
-  o.isAmir = AMIR.test(o.handler || '');   // заказ принял и обработал Амир: ему 10% (из моих 35%)
-  o.amirPct = o.isAmir ? (o.amirPct == null ? 10 : o.amirPct) : 0;
+  o.isAmir = AMIR.test(o.handler || ''); o.isAlina = ALINA.test(o.handler || '');
+  o.isStaff = o.isAmir || o.isAlina; o.staffName = o.isAmir ? 'Амир' : o.isAlina ? 'Алина' : '';   // заказ обработал помощник: ему 10% (из моих 35%)
+  o.amirPct = o.isStaff ? (o.amirPct == null ? 10 : o.amirPct) : 0;
   o.amir = o.net * o.amirPct / 100;
   o.mine = o.myShare + (o.isMeDes ? o.desT : 0) + (o.isMeScan ? o.scanHalf : 0);
   o.partner = o.net - o.myShare - o.amir + o.scanHalf + (TIMUR.test(o.scanner || '') ? o.scanHalf : 0);
@@ -1672,12 +1673,17 @@ function calc3d(o) {
   o.dueSoon = o.open && !!o.plan && !o.overdue && (o.plan - t0) <= 2 * 864e5;
   o.late = o.handed && o.plan && o.fact && o.fact > o.plan;
   o.counts = !o.void && o.price != null;
+  // заказ без цены, но дизайн делал я: оплата за дизайн сразу идёт мне, без ожидания цены и передачи
+  o.designOnly = !o.counts && !o.void && o.isMeDes && o.desT > 0;
+  if (o.designOnly) { o.net = 0; o.myShare = 0; o.amir = 0; o.partner = 0; o.mine = o.desT; }
   o.clientOwes = o.price != null && !o.void && !o.handed ? Math.max(o.price + (o.scan || 0) - o.pre, 0) : 0;   // передан — значит клиент рассчитался
+  // у сотрудника денег заказа нет: берём только его зарплату, которую посчитал сервер
+  if (o.staffView) { o.amir = o.salary || 0; o.mine = o.amir; o.myShare = 0; o.partner = 0; o.designOnly = false; o.clientOwes = 0; o.counts = !o.void && o.salary != null; }
   return o;
 }
 const p3 = () => orders;
 function months3d() { const s = new Set(p3().map(o => o.month)); s.add(mk(new Date())); return [...s].sort(); }
-const mine3d = list => sum(list.filter(o => o.counts), o => o.mine);
+const mine3d = list => sum(list.filter(o => o.counts || o.designOnly), o => o.mine);
 // Тимур рассчитывается за месяц целиком, когда все заказы месяца переданы клиентам
 function settle3d(m) {
   const l = p3().filter(o => o.month === m && !o.void);
@@ -1772,7 +1778,8 @@ function renderOrders() {
   $('pPrev').disabled = i <= 0; $('pNext').disabled = i >= ms.length - 1;
   $('pName').innerHTML = mLabel(pMonth) + (pMonth === now ? '<small>текущий месяц</small>' : '');
   const unN = prints.filter(p => p.how === 'не разобрано').length;
-  $('pFilter').innerHTML = FILTERS.concat([['prints', 'Неразобранные печати' + (unN ? ' · ' + unN : '')]]).map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
+  if (role !== 'owner' && (pFilter === 'prints' || pFilter === 'unpaid')) pFilter = 'all';
+  $('pFilter').innerHTML = (role === 'owner' ? FILTERS.concat([['prints', 'Неразобранные печати' + (unN ? ' · ' + unN : '')]]) : FILTERS.filter(f => f[0] !== 'unpaid')).map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
   $('pFilter').querySelectorAll('button').forEach(b => b.onclick = () => { pFilter = b.dataset.f; renderOrders(); });
   const onPr = pFilter === 'prints';
   $('pSearchRow').hidden = onPr; $('pList').hidden = onPr; $('pTableBox').hidden = onPr;
@@ -1780,6 +1787,7 @@ function renderOrders() {
   const list = p3().filter(o => o.month === pMonth);
   const m = mine3d(list), done = mine3d(list.filter(o => o.done)), act = list.filter(o => ACTIVE.includes(o.status));
   countTo($('pMine'), m, '<small>₸</small>');
+  if (role !== 'owner') document.querySelector('#v-p-orders .hero .label').textContent = 'Моя зарплата за месяц';
   const grams = sum(list, o => o.grams), revenue = sum(list.filter(o => o.counts), o => o.price + o.scan);
   $('pKpi').innerHTML = [
     ['Передано клиентам', money(done) + ' ₸', list.filter(o => o.done).length + ' заказов'],
@@ -1788,15 +1796,16 @@ function renderOrders() {
     ['С Тимуром', (() => { const s = settle3d(pMonth); return s.payable ? money(s.sum) + ' ₸' : s.owed.length ? 'ждёт' : '—'; })(), (() => { const s = settle3d(pMonth); return s.payable ? 'можно закрыть месяц' : s.open.length ? 'не передано ещё ' + s.open.length : s.owed.length ? '' : 'рассчитались'; })()],
     ['Выручка заказов', money(revenue) + ' ₸', 'всего по месяцу'],
     ['Пластик', (grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸'],
-    ...(list.some(o => o.isAmir) || role === 'amir' ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir && !o.void).length + ' заказов обработал']] : [])
-  ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
+    ...(list.some(o => o.isAmir) ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir && !o.void).length + ' заказов обработал']] : []),
+    ...(list.some(o => o.isAlina) ? [['Зарплата Алины', money(alina3d(list)) + ' ₸', list.filter(o => o.isAlina && !o.void).length + ' заказов обработала']] : [])
+  ].slice(0, role === 'owner' ? 99 : 3).map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   const q = kidKey($('pSearch').value || '');
   let show = q ? p3().filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no).includes(q)) : list;
   show = applyFilter(show);
   show = [...show].sort((a, b) => (b.date || 0) - (a.date || 0) || b.no - a.no);
   $('pList').innerHTML = show.length ? show.map(ordLine).join('') : `<div class="empty" style="border:0">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+», чтобы добавить.'}</div>`;
   $('pList').querySelectorAll('[data-id]').forEach(b => b.onclick = () => openOrder(b.dataset.id));
-  if (isWide()) renderTable();
+  if (isWide() && role === 'owner') renderTable();
   renderPrints();
 }
 
@@ -1808,7 +1817,7 @@ const TCOLS = [
   ['status', 'Статус', o => STATUSES.findIndex(x => x[0] === o.status)], ['plan', 'Срок', o => o.plan ? o.plan.getTime() : 9e15], ['fact', 'Передан', o => o.fact ? o.fact.getTime() : 0],
   ['price', 'Цена', o => o.price || 0, 'r'], ['owes', 'Клиент должен', o => o.clientOwes, 'r'],
   ['grams', 'Пластик, г', o => o.grams, 'r'], ['des', 'Дизайн', o => o.desT, 'r'], ['scan', 'Скан', o => o.scan, 'r'], ['share', 'Доля', o => o.share, 'r'],
-  ['mine', 'Мне', o => o.counts ? o.mine : -1e12, 'r'], ['partner', 'Тимуру', o => o.counts ? o.partner : 0, 'r'], ['amir', 'Амиру', o => o.counts ? o.amir : 0, 'r'], ['paid', 'Рассч.', o => o.paid ? 1 : 0]];
+  ['mine', 'Мне', o => o.counts || o.designOnly ? o.mine : -1e12, 'r'], ['partner', 'Тимуру', o => o.counts ? o.partner : 0, 'r'], ['amir', 'Помощнику', o => o.counts ? o.amir : 0, 'r'], ['paid', 'Рассч.', o => o.paid ? 1 : 0]];
 function renderTable() {
   const q = kidKey($('pSearch2').value || '');
   let show = $('pAllMonths').checked || q ? p3() : p3().filter(o => o.month === pMonth);
@@ -1829,11 +1838,11 @@ function renderTable() {
     <td class="r">${o.desT ? money(o.desT) + (o.isMeDes ? ' <span class="kbd">я</span>' : '') : ''}</td>
     <td class="r">${o.scan ? money(o.scan) + (o.isMeScan ? ' <span class="kbd">я</span>' : '') : ''}</td>
     <td class="r"><input class="pct" data-act="share" inputmode="decimal" value="${o.share}" aria-label="Доля, %"></td>
-    <td class="r mine ${o.mine < 0 ? 'neg' : ''}">${o.counts ? money(o.mine) : '—'}</td><td class="r">${o.counts ? money(o.partner) : '—'}</td><td class="r">${o.counts && o.amir ? money(o.amir) : ''}</td>
+    <td class="r mine ${o.mine < 0 ? 'neg' : ''}">${o.counts || o.designOnly ? money(o.mine) : '—'}</td><td class="r">${o.counts ? money(o.partner) : '—'}</td><td class="r">${o.counts && o.amir ? money(o.amir) + ' <span class="kbd">' + o.staffName + '</span>' : ''}</td>
     <td>${o.handed ? `<input type="checkbox" data-act="paid" ${o.paid ? 'checked' : ''} aria-label="Рассчитались">` : ''}</td></tr>`).join('');
   const cnt = show.filter(o => o.counts);
   const foot = `<tfoot><tr><td colspan="7">Итого: ${show.length} заказов</td><td class="r">${money(sum(cnt, o => o.price))}</td><td class="r">${money(sum(cnt, o => o.clientOwes))}</td>
-    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td class="r">${money(sum(cnt, o => o.scan))}</td><td></td><td class="r mine">${money(sum(cnt, o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td class="r">${money(sum(cnt, o => o.amir))}</td><td></td></tr></tfoot>`;
+    <td class="r">${money(sum(show, o => o.grams))}</td><td class="r">${money(sum(cnt, o => o.desT))}</td><td class="r">${money(sum(cnt, o => o.scan))}</td><td></td><td class="r mine">${money(sum(show.filter(o => o.counts || o.designOnly), o => o.mine))}</td><td class="r">${money(sum(cnt, o => o.partner))}</td><td class="r">${money(sum(cnt, o => o.amir))}</td><td></td></tr></tfoot>`;
   $('pTable').innerHTML = head + '<tbody>' + (body || `<tr><td colspan="17" style="text-align:center;color:var(--muted);padding:24px">${q ? 'Ничего не нашёл.' : 'Заказов нет. Нажмите «+ Новый заказ».'}</td></tr>`) + '</tbody>' + foot;
   $('pTable').querySelectorAll('th[data-k]').forEach(th => th.onclick = () => { tSort = { k: th.dataset.k, dir: tSort.k === th.dataset.k ? -tSort.dir : (th.classList.contains('r') ? -1 : 1) }; renderTable(); });
   $('pTable').querySelectorAll('tbody tr[data-id]').forEach(tr => tr.onclick = e => { if (e.target.closest('[data-act]')) return; openOrder(tr.dataset.id); renderTable(); });
@@ -1860,7 +1869,7 @@ function placeSide() {
   else if (top.parentNode === side) { wrap.insertBefore(secs, wrap.firstChild); wrap.insertBefore(top, secs); document.body.insertBefore(tb, sideHome.tabbar); side.hidden = true; }
 }
 let rzT = 0; window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => render(), 200); });
-window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders'); document.body.classList.toggle('desk', isWide()); placeSide(); render(); });
+window.matchMedia('(min-width: 1000px)').addEventListener('change', () => { document.body.classList.toggle('wide', isWide() && view === 'p-orders' && role === 'owner'); document.body.classList.toggle('desk', isWide()); placeSide(); render(); });
 document.addEventListener('keydown', e => {
   const typing = /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''));
   if (e.key === 'Escape') { ['ordBg', 'sheetBg', 'goalBg', 'opBg'].forEach(id => $(id).hidden = true); if (view === 'p-orders' && isWide()) renderTable(); return; }
@@ -1871,7 +1880,7 @@ document.addEventListener('keydown', e => {
 function ordLine(o) {
   const flags = [];
   if (o.grams) flags.push((o.parts.length > 1 ? o.parts.length + ' печ. · ' : '') + money(o.grams) + ' г');
-  if (o.isAmir) flags.push('<span class="flag">обработал Амир' + (o.counts ? ' · ' + money(o.amir) + ' ₸' : '') + '</span>');
+  if (o.isStaff && role === 'owner') flags.push('<span class="flag">обработал ' + o.staffName + (o.counts ? ' · ' + money(o.amir) + ' ₸' : '') + '</span>');
   if (o.des) flags.push('дизайн: ' + esc(o.des));
   if (o.clientOwes > 0 && o.pre > 0) flags.push('предоплата ' + money(o.pre));
   if (o.scan) flags.push('скан: ' + esc(o.scanner || '?') + ' ' + money(o.scan));
@@ -1879,9 +1888,9 @@ function ordLine(o) {
   else if (o.open && o.plan) flags.push((o.dueSoon ? '<span class="flag">' : '<span>') + 'срок ' + o.plan.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + '</span>');
   if (o.ready) flags.push('<span class="flag">ждёт выдачи</span>');
   if (o.handed && o.fact) flags.push('передан ' + o.fact.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + (o.late ? ' <span class="flag bad">позже срока</span>' : ''));
-  if (o.handed) flags.push(o.paid ? '<span class="flag ok">рассчитались</span>' : '<span class="flag">Тимур ещё не рассчитался</span>');
+  if (o.handed && role === 'owner') flags.push(o.paid ? '<span class="flag ok">рассчитались</span>' : '<span class="flag">Тимур ещё не рассчитался</span>');
   return `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no || '—'}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
-    <div class="pr num"><b>${o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts ? `<span>мне ${money(o.mine)}</span>` : ''}</div>
+    <div class="pr num"><b>${role !== 'owner' ? '' : o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts || o.designOnly ? `<span>${role === 'owner' ? 'мне' : 'тебе'} ${money(o.mine)}</span>` : ''}</div>
     ${o.desc ? `<div class="ds">${esc(o.desc)}</div>` : ''}
     ${o.items.length ? (() => { const s = itemsSum(o.items), pc = s.total ? Math.min(100, Math.round(s.done / s.total * 100)) : 0;
       return `<div class="prog"><span>${o.items.length > 1 ? o.items.map(i => esc(i.name) + ' ' + i.done + '/' + i.total).join(' · ') : 'Готово ' + s.done + ' из ' + s.total}${s.done < s.total ? ' · осталось ' + (s.total - s.done) : ' · всё готово ✓'}</span><div class="bar ${s.done >= s.total ? 'full' : ''}"><i style="width:${pc}%"></i></div></div>`; })() : ''}
@@ -1906,11 +1915,12 @@ function renderPStats() {
     ['В среднем в месяц', money(avg) + ' ₸', 'без текущего'],
     ['Заказов', String(list.length), 'средний чек ' + money(list.length ? rev / list.length : 0) + ' ₸'],
     ['Пластик', (sum(list, o => o.grams) / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸'],
-    ...(list.some(o => o.isAmir) || role === 'amir' ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir).length + ' заказов · ' + periodName(ppPeriod, ms)]] : [])
+    ...(list.some(o => o.isAmir) ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir).length + ' заказов · ' + periodName(ppPeriod, ms)]] : []),
+    ...(list.some(o => o.isAlina) ? [['Зарплата Алины', money(alina3d(list)) + ' ₸', list.filter(o => o.isAlina).length + ' заказов · ' + periodName(ppPeriod, ms)]] : [])
   ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   barChart($('ppChart'), per, { avg, sel: pMonth, money: true, click: k => { pMonth = k; go('p-orders'); } });
-  const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(list.filter(o => o.isMeDes), o => o.desT), 'var(--accent)'],
-    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Амиру', sum(list, o => o.amir), 'var(--amber)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
+  const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(p3().filter(o => set.has(o.month) && (o.counts || o.designOnly) && o.isMeDes), o => o.desT), 'var(--accent)'],
+    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Амиру', sum(list.filter(o => o.isAmir), o => o.amir), 'var(--amber)'], ['Алине', sum(list.filter(o => o.isAlina), o => o.amir), 'var(--amber)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
   const mx = Math.max(...parts.map(x => Math.abs(x[1])), 1);
   renderProf(list);
   $('ppMix').innerHTML = parts.map(([t, v, c]) => `<div class="hb"><span>${t}</span><b class="num">${money(v)} ₸${rev ? ' · ' + Math.round(v / rev * 100) + '%' : ''}</b><div class="track"><i style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${c}"></i></div></div>`).join('') || '<div class="hint">Нет данных.</div>';
@@ -2215,7 +2225,8 @@ async function saveOrderRow(o, patch) {
   const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ key: store.get('appKey'), action: 'save3d', row }) }).then(r => r.json()).catch(() => null);
   if (!res) throw { code: 'server_unavailable' };
-  if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error };
+  if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error === 'forbidden' ? 'это не ваш заказ' : res.error === 'bad_row' ? 'проверьте цифры и даты' : res.error };
+  return res;
 }
 
 /* ---------- карточка заказа ---------- */
@@ -2235,8 +2246,8 @@ function openOrder(id) {
   $('oPrice').value = o && o.price != null ? o.price : '';
   $('oPre').value = o && o.pre ? o.pre : '';
   $('oPlPrice').value = o ? o.plPrice : (last ? last.plPrice : 5);
-  $('oAmir').checked = o ? o.isAmir : role === 'amir';
-  $('oShare').value = o ? o.share : ($('oAmir').checked ? 25 : 35);
+  $('oHandler').value = role !== 'owner' ? STAFF_NAME[role] : o ? o.staffName : '';
+  $('oShare').value = role !== 'owner' ? 25 : o ? o.share : ($('oHandler').value ? 25 : 35);
   $('oDes').value = o ? o.des : '';
   $('oDesPay').value = o && o.desPay ? o.desPay : '';
   ordCur = o && o.desPay ? o.cur : '₽';
@@ -2258,7 +2269,7 @@ function formOrder() {
   const o = { parts: oParts, plPrice: num($('oPlPrice').value) || 0, desPay: num($('oDesPay').value), cur: ordCur, rate: num($('oRate').value) || 0,
     des: $('oDes').value.trim(), price: $('oPrice').value.trim() === '' ? null : num($('oPrice').value), pre: num($('oPre').value),
     share: num($('oShare').value), status: oStatus, scan: num($('oScan').value), scanner: $('oScanner').value.trim(),
-    handler: $('oAmir').checked ? 'Амир' : '', amirPct: editing && editing.isAmir && $('oAmir').checked ? editing.amirPct : null };
+    handler: $('oHandler').value, amirPct: editing && editing.isStaff && editing.staffName === $('oHandler').value ? editing.amirPct : null };
   return calc3d(o);
 }
 function drawOrderForm() {
@@ -2271,13 +2282,14 @@ function drawOrderForm() {
   $('oRateF').hidden = ordCur !== '₽';
   const f = formOrder();
   const line = (t, v, cls) => `<span>${t}</span><span class="r ${cls || ''}">${v}</span>`;
-  $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы посчитать доли.</span><span></span>' :
+  if (role !== 'owner') { $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы увидеть свою зарплату.</span><span></span>' : line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line('Дизайн', '−' + money(f.desT) + ' ₸') : '') + line('Остаток', money(f.net) + ' ₸') + line('Моя зарплата ' + f.amirPct + '%', money(f.amir) + ' ₸', 'tot'); return; }
+  $('oCalc').innerHTML = f.price == null ? (f.designOnly ? line('Дизайн (мне)', money(f.desT) + ' ₸') + line('Мне всего', money(f.mine) + ' ₸', 'tot') + '<span>Цены пока нет: считается только дизайн.</span><span></span>' : '<span>Укажите цену заказа, чтобы посчитать доли.</span><span></span>') :
     line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line(f.isMeDes ? 'Дизайн (мне)' : 'Дизайнеру', '−' + money(f.desT) + ' ₸') : '') +
-    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isAmir ? line('Амиру ' + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
+    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isStaff ? line((f.isAlina ? 'Алине ' : 'Амиру ') + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
     (f.scan ? line('Скан (отдельно)', money(f.scan) + ' ₸') : '') + (f.pre ? line('Клиент ещё должен', money(Math.max(f.price + f.scan - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.mine) + ' ₸', 'tot');
 }
 ['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate', 'oScan', 'oScanner'].forEach(id => $(id).addEventListener('input', drawOrderForm));
-$('oAmir').addEventListener('change', () => { const v = num($('oShare').value); if ($('oAmir').checked && (v === 35 || !$('oShare').value)) $('oShare').value = 25; if (!$('oAmir').checked && v === 25) $('oShare').value = 35; drawOrderForm(); });
+$('oHandler').addEventListener('change', () => { const v = num($('oShare').value), on = !!$('oHandler').value; if (on && (v === 35 || !$('oShare').value)) $('oShare').value = 25; if (!on && v === 25) $('oShare').value = 35; drawOrderForm(); });
 $('oCur').querySelectorAll('button').forEach(b => b.onclick = () => { ordCur = b.dataset.c; drawOrderForm(); });
 /* состав заказа: виды, сколько нужно и сколько готово */
 function drawItems() {
@@ -2316,7 +2328,7 @@ $('ordForm').addEventListener('submit', async e => {
   if ($('oPartIn').value.trim()) addPart();
   if (num($('oItQty').value) > 0) addItem();
   const o = editing, d = fromIso($('oDate').value), mon = $('oDate').value.slice(0, 7);
-  const no = o ? o.no : Math.max(0, ...p3().filter(x => x.month === mon).map(x => x.no)) + 1;
+  let no = o ? o.no : Math.max(0, ...p3().filter(x => x.month === mon).map(x => x.no)) + 1;
   const n = v => { const x = String(v).trim(); return x === '' ? '' : String(num(x)).replace('.', ','); };
   const patch = { 'ID': o ? o.id : 'p' + Math.random().toString(16).slice(2, 9), '№': String(no), 'Дата заказа': d, 'Месяц': mon,
     'Плановая дата': fromIso($('oPlan').value), 'Передан клиенту (факт)': fromIso($('oFact').value),
@@ -2325,11 +2337,12 @@ $('ordForm').addEventListener('submit', async e => {
     'Цена пластика, ₸/г': n($('oPlPrice').value), 'Дизайнер': $('oDes').value.trim(), 'Оплата дизайнеру': n($('oDesPay').value),
     'Валюта': $('oDesPay').value.trim() ? ordCur : '', 'Курс ₽→₸': n($('oRate').value), 'Доля Асета, %': n($('oShare').value),
     'Рассчитались': $('oPaid').checked ? (o && o.paid ? o.paid : fmtDate(new Date())) : '', 'Примечание': $('oNote').value.trim(),
-    'Источник': o ? (o.src || 'Приложение') : (role === 'amir' ? 'Приложение (Амир)' : 'Приложение'), 'Состав (готово/всего)': itemsText(oItems),
-    'Обработал': $('oAmir').checked ? 'Амир' : '', 'Доля Амира, %': $('oAmir').checked ? String(o && o.isAmir ? o.amirPct : 10).replace('.', ',') : '' };
+    'Источник': o ? (o.src || 'Приложение') : 'Приложение', 'Состав (готово/всего)': itemsText(oItems),
+    'Обработал': $('oHandler').value, 'Доля Амира, %': $('oHandler').value ? String(o && o.isStaff && o.staffName === $('oHandler').value ? o.amirPct : 10).replace('.', ',') : '' };
   $('oSave').disabled = true; $('oSave').textContent = 'Сохраняю…';
   try {
-    await saveOrderRow(o || { raw: [] }, patch);
+    const sr = await saveOrderRow(o || { raw: [] }, patch);
+    if (src === 'api' && sr && sr.no) no = sr.no;
     $('ordBg').hidden = true; pMonth = mon;
     await refreshNow();
     $('status').textContent = (o ? 'Заказ №' + no + ' сохранён' : 'Заказ №' + no + ' добавлен');
@@ -2345,6 +2358,4 @@ function onData3d(result) {
 
 boot();
 </script>
-
-</body>
-</html>
+</body></html>
