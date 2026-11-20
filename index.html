@@ -2140,7 +2140,7 @@ function renderPrints() {
   pager('prPager', 'prList', un.length, prPage, prSize, p => { prPage = p; renderPrints(); }, z => { prSize = z; prPage = 0; try { store.set('prSize', String(z)); } catch (x) {} renderPrints(); });
   $('prList').innerHTML = shown.map(p => `<div class="pr-row" data-pid="${esc(p.id)}">
     <div class="pr-h"><b>${esc(p.name || 'без названия')}</b><span class="num">${money(p.grams)} г</span></div>
-    <div class="pr-m">${esc(p.printer)} · ${esc(p.start)}${p.share && p.share !== '1' ? ' · <span class="flag bad">напечатано ' + Math.round(num(p.share) * 100) + '%</span>' : ''}</div>
+    <div class="pr-m">${esc(p.printer)} · ${esc(p.start)}${p.share && p.share !== '1' ? ' · <span class="flag bad">напечатано ' + Math.round(num(p.share) * 100) + '%</span>' : ''}${p.note && /проверь/.test(p.note) ? ' · <span class="flag bad">' + esc(p.note) + '</span>' : ''}</div>
     <div class="pr-a"><select aria-label="Заказ для печати"><option value="">Выберите заказ…</option>${opts}<option value="-">Не для заказа — пропустить</option></select>
       <label class="check" style="font-size:13px"><input type="checkbox" checked> запомнить «${esc(prKey(p.name) || p.name)}»</label>
       <button class="btn sm" type="button">Привязать</button>
