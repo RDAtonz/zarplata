@@ -1,5 +1,4 @@
-<!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Моя зарплата"><meta name="theme-color" content="#EDF1EE" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#090D0B" media="(prefers-color-scheme: dark)"><meta name="robots" content="noindex"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Зарплата"><meta name="theme-color" content="#eef2ef" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#111514" media="(prefers-color-scheme: dark)"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style></head><body>
 <title>Моя зарплата</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -571,6 +570,9 @@ body.locked .wrap > *:not(#notice), body.locked .side, body.locked .side-tg, bod
 body.locked .wrap { min-height: 100vh; justify-content: center; }
 body.locked .notice { background: transparent; border: 0; box-shadow: none; padding: 0; }
 body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, body.role-staff .own-only { display: none !important; }
+/* Нурдаулет: ведёт свои заказы, видит статистику, дизайн и сроки; без расчётов с Тимуром и без скана */
+body.role-mgr #navPrint [data-v="p-settle"], body.role-mgr .no-mgr { display: none !important; }
+@media (max-width: 999px) { body.role-mgr #navPrint:not([hidden]) { grid-template-columns: repeat(4, 1fr); } }
 </style>
 
 <aside class="side" id="side" hidden></aside>
@@ -751,8 +753,8 @@ body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, bod
     </div>
     <h2 class="sec">Дизайн</h2>
     <div class="ops" id="dList"></div>
-    <h2 class="sec">3D-сканирование</h2>
-    <div class="ops" id="dScan"></div>
+    <h2 class="sec no-mgr">3D-сканирование</h2>
+    <div class="ops no-mgr" id="dScan"></div>
     <div class="card"><h3>За всё время</h3><div class="tbl-wrap"><table id="dAll"></table></div></div>
     <div class="status" id="dNote">Если дизайнер — ты (имя «Асет»), оплата за дизайн добавляется к твоему доходу. За скан половина идёт Тимуру, половина — тому, кто сканировал.</div>
   </section>
@@ -852,7 +854,7 @@ body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, bod
       <div class="field"><label for="oPlPrice">Цена пластика, ₸/г</label><input id="oPlPrice" inputmode="decimal"></div>
       <div class="field own-only"><label for="oShare" id="oShareL">Моя доля в этом заказе, %</label><input id="oShare" inputmode="decimal"></div>
     </div>
-    <div class="field own-only"><label for="oHandler">Кто обработал заказ</label><select id="oHandler"><option value="">Без помощника: моя доля 35%</option><option value="Амир">Амир: мне 25%, Амиру 10%</option><option value="Алина">Алина: мне 25%, Алине 10%</option></select></div>
+    <div class="field own-only"><label for="oHandler">Кто обработал заказ</label><select id="oHandler"><option value="">Без помощника: моя доля 35%</option><option value="Амир">Амир: мне 25%, Амиру 10%</option><option value="Алина">Алина: мне 25%, Алине 10%</option><option value="Нурдаулет">Нурдаулет: мне 10%, ему 30%</option></select></div>
     <div class="grp">Дизайн</div>
     <div class="row2">
       <div class="field"><label for="oDes">Дизайнер</label><input id="oDes" list="oDesigners" placeholder="Нет / Рада / Асет"></div>
@@ -862,8 +864,8 @@ body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, bod
       <div class="field"><label>Валюта</label><div class="seg2" id="oCur"><button type="button" data-c="₽">₽ рубли</button><button type="button" data-c="₸">₸ тенге</button></div></div>
       <div class="field" id="oRateF"><label for="oRate">Курс ₽→₸</label><input id="oRate" inputmode="decimal"></div>
     </div>
-    <div class="grp">3D-сканирование</div>
-    <div class="row2">
+    <div class="grp no-mgr">3D-сканирование</div>
+    <div class="row2 no-mgr">
       <div class="field"><label for="oScan">Сканирование, ₸ (отдельно от цены)</label><input id="oScan" inputmode="decimal" placeholder="0 — не было"></div>
       <div class="field"><label for="oScanner">Кто сканировал</label><input id="oScanner" list="oScanners" placeholder="Асет / …"></div>
     </div>
@@ -874,9 +876,9 @@ body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, bod
       <div class="field"><label for="oPlan">Плановая дата</label><input id="oPlan" type="date"></div>
       <div class="field"><label for="oFact">Передан клиенту (факт)</label><input id="oFact" type="date"></div>
     </div>
-    <div class="grp own-only">Ещё</div>
+    <div class="grp own-only mgr-show">Ещё</div>
     <div class="field own-only"><label class="check"><input type="checkbox" id="oPaid"> <span id="oPaidL">Тимур со мной рассчитался</span></label></div>
-    <div class="field own-only"><label for="oNote">Примечание</label><input id="oNote" placeholder="Необязательно"></div>
+    <div class="field own-only mgr-show"><label for="oNote">Примечание</label><input id="oNote" placeholder="Необязательно"></div>
     <div class="err" id="oErr" hidden></div>
     <div class="row2">
       <button type="button" class="btn ghost" id="oCancel">Закрыть</button>
@@ -924,7 +926,8 @@ body.role-staff #goalBtn, body.role-staff #pTableBox, body.role-staff #pNew, bod
 
 <script>
 const SHEET_ID = '1B68sIA2xlK9v95zkupvEP8iahwqMCWFFJqG8pA0tZTo';
-const API_URL = 'https://script.google.com/macros/s/AKfycbzmjShQMZKGDjF_XWcvEA80tWXthpz98OFBBW_1HPpsfcLNzjaLtiMCiIn34nwx4FC5ow/exec'; // ссылка на веб-приложение Google (для версии на GitHub)
+const API_URL = 'https://script.google.com/macros/s/AKfycbzmjShQMZKGDjF_XWcvEA80tWXthpz98OFBBW_1HPpsfcLNzjaLtiMCiIn34nwx4FC5ow/exec';
+const APP_TITLE = document.title || 'Моя зарплата'; // ссылка на веб-приложение Google (для версии на GitHub)
 let src = null; // 'mcp' — внутри Claude, 'api' — на GitHub с ключом
 const SERVER = 'Google Sheets';
 const RANGE = "'Операции'!A1:M";
@@ -1273,15 +1276,21 @@ async function closeMonth(m, amount, btn) {
 }
 
 /* ---------- общий рендер ---------- */
-const STAFF_NAME = { amir: 'Амир', alina: 'Алина' };
+const STAFF_NAME = { amir: 'Амир', alina: 'Алина', nurdaulet: 'Нурдаулет' };
+const MGR = () => role === 'nurdaulet';   // Нурдаулет: свои заказы целиком, без моих данных
+const MGR_VIEWS = ['p-orders', 'p-stats', 'p-des', 'p-cal'];
+const okView = v => v === 'p-orders' || (MGR() && MGR_VIEWS.includes(v));
 let role = 'owner'; try { const sr = store.get('role'); if (STAFF_NAME[sr]) role = sr; } catch (e) {}
 let limited = false; try { limited = store.get('role') === 'timur'; } catch (e) {}   // Тимур: всё по 3D-печати, без тренерства и общей статистики
 function applyRole() {
   const a = role !== 'owner';
   document.body.classList.toggle('role-staff', a);
   document.body.classList.toggle('role-timur', limited);
+  document.body.classList.toggle('role-mgr', MGR());
+  document.querySelectorAll('.mgr-show').forEach(e => e.classList.toggle('own-only', !MGR()));
+  { const db = document.querySelector('#navPrint [data-v="p-des"]'); if (db && db.lastChild) db.lastChild.textContent = MGR() ? 'Дизайн' : 'Дизайн и скан'; }
   $('sections').hidden = a || limited;
-  if (a && view !== 'p-orders') go('p-orders');
+  if (a && !okView(view)) go('p-orders');
   else if (limited && !view.startsWith('p-')) go('p-orders');
 }
 const SECTION_OF = v => v === 'all' ? 'all' : v.startsWith('p-') ? 'print' : 'coach';
@@ -1300,7 +1309,7 @@ function render() {
   if (view === 'settle') renderSettle();
 }
 function go(v) {
-  if (role !== 'owner') v = 'p-orders';   // Амиру и Алине — только список заказов
+  if (role !== 'owner' && !okView(v)) v = 'p-orders';   // Амиру и Алине — только список заказов, Нурдаулету ещё статистика, дизайн и сроки
   if (limited && !v.startsWith('p-')) v = 'p-orders';
   view = v;
   document.querySelectorAll('.view').forEach(s => { s.hidden = s.id !== 'v-' + v; s.style.display = s.hidden ? '' : 'flex'; });
@@ -1308,7 +1317,7 @@ function go(v) {
   document.querySelectorAll('.tabbar button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'));
   const sec = SECTION_OF(v); if (sec !== 'all') lastView[sec] = v;
   $('sections').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === sec)));
-  $('tabbar').hidden = sec === 'all' || role !== 'owner'; $('navCoach').hidden = sec !== 'coach'; $('navPrint').hidden = sec !== 'print';
+  $('tabbar').hidden = sec === 'all' || (role !== 'owner' && !MGR()); $('navCoach').hidden = sec !== 'coach'; $('navPrint').hidden = sec !== 'print';
   $('fab').hidden = !['home', 'p-orders'].includes(v) || !src || (limited && v !== 'p-orders');
   try { store.set('view', v); } catch (e) {}
   document.body.classList.toggle('wide', v === 'p-orders' && isWide() && role === 'owner');
@@ -1390,7 +1399,7 @@ async function apiLoad() {
   if (res.valuesPrints) ingestPrints(res.valuesPrints);
   onData({ payload: { values: res.values } });
 }
-function setLocked(on) { document.body.classList.toggle('locked', on); document.title = on ? 'Вход' : 'Моя зарплата'; }
+function setLocked(on) { document.body.classList.toggle('locked', on); document.title = on ? 'Вход' : APP_TITLE; }
 function askKey(err) {
   setLocked(true);
   loaded = false; rows = []; $('feed').innerHTML = ''; $('fab').hidden = true;
@@ -1631,10 +1640,17 @@ const ACTIVE = ['На согласовании', 'Моделируется', 'В
 const DONE = ['Передан клиенту'];
 const VOID = ['Возврат', 'Отменён'];
 const BLOCK = [...ACTIVE, 'Готов'];   // пока такие заказы есть, месяц с Тимуром не закрыть
-const ME = /^асет/i, TIMUR = /^тимур/i, AMIR = /^амир/i, ALINA = /^алина/i;
+const ME = /^асет/i, TIMUR = /^тимур/i, AMIR = /^амир/i, ALINA = /^алина/i, NURD = /^нурдаулет/i;
+// С декабря 2026 моя доля 40% (Тимуру 60%), до этого 35%. Амир/Алина берут 10% из моей доли.
+// Заказы Нурдаулета: ему 30%, мне 10%, Тимуру 60% — с самого начала.
+const baseShare = m => String(m || mk(new Date())) >= '2026-12' ? 40 : 35;
+const defShare = (m, h) => NURD.test(h || '') ? 10 : (AMIR.test(h || '') || ALINA.test(h || '')) ? baseShare(m) - 10 : baseShare(m);
+const defHelperPct = h => NURD.test(h || '') ? 30 : 10;
+const DAT = { 'Амир': 'Амиру', 'Алина': 'Алине', 'Нурдаулет': 'Нурдаулету' };
 const staff3d = list => sum(list.filter(o => o.counts && o.isStaff), o => o.amir);   // зарплата тех, кто обработал заказы (Амир и Алина вместе)
 const amir3d = list => sum(list.filter(o => o.counts && o.isAmir), o => o.amir);
 const alina3d = list => sum(list.filter(o => o.counts && o.isAlina), o => o.amir);
+const nurd3d = list => sum(list.filter(o => o.counts && o.isNurd), o => o.amir);
 const today0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 let orders = [], loaded3d = false, pMonth = null, pFilter = 'all', ppPeriod = '12', dMonth = null, aMonth = null, editing = null, ordCur = '₽';
@@ -1657,13 +1673,14 @@ function ingest3d(values) {
       parts: g(r, 'Пластик, г (части через +)').replace(/^'/, '').split('+').map(x => num(x)).filter(x => x > 0),
       plPrice: g(r, 'Цена пластика, ₸/г') === '' ? 5 : num(g(r, 'Цена пластика, ₸/г')),
       des: g(r, 'Дизайнер'), desPay: num(g(r, 'Оплата дизайнеру')), cur: g(r, 'Валюта') || '₽',
-      rate: g(r, 'Курс ₽→₸') === '' ? 5.5 : num(g(r, 'Курс ₽→₸')), share: g(r, 'Доля Асета, %') === '' ? 35 : num(g(r, 'Доля Асета, %')),
+      rate: g(r, 'Курс ₽→₸') === '' ? 5.5 : num(g(r, 'Курс ₽→₸')), share: g(r, 'Доля Асета, %') === '' ? null : num(g(r, 'Доля Асета, %')),
       paid: g(r, 'Рассчитались'), note: g(r, 'Примечание'), src: g(r, 'Источник'), items: parseItems(g(r, 'Состав (готово/всего)')),
       fullPaid: /^(да|1|true)$/i.test(g(r, 'Оплачено полностью')), phone: cleanPhone(g(r, 'Телефон')) || findPhone(g(r, 'Примечание'), g(r, 'Клиент')), handler: g(r, 'Обработал'), amirPct: g(r, 'Доля Амира, %') === '' ? null : num(g(r, 'Доля Амира, %')),
       staffView: sIx >= 0, salary: sIx >= 0 && r[sIx] !== '' && r[sIx] != null ? num(String(r[sIx])) : null };
     let m = g(r, 'Месяц').replace(/^'/, '');
     if (!/^\d{4}-\d{2}$/.test(m)) m = o.date ? mk(o.date) : '';
     o.month = m;
+    if (o.share == null) o.share = defShare(m, o.handler);
     return calc3d(o);
   }).filter(o => o.id && o.month);
 }
@@ -1677,9 +1694,9 @@ function calc3d(o) {
   o.scanHalf = o.scan / 2;
   o.net = (o.price || 0) - o.desT - o.material;   // скан оплачивается отдельно, сверх цены
   o.myShare = o.net * o.share / 100;
-  o.isAmir = AMIR.test(o.handler || ''); o.isAlina = ALINA.test(o.handler || '');
-  o.isStaff = o.isAmir || o.isAlina; o.staffName = o.isAmir ? 'Амир' : o.isAlina ? 'Алина' : '';   // заказ обработал помощник: ему 10% (из моих 35%)
-  o.amirPct = o.isStaff ? (o.amirPct == null ? 10 : o.amirPct) : 0;
+  o.isAmir = AMIR.test(o.handler || ''); o.isAlina = ALINA.test(o.handler || ''); o.isNurd = NURD.test(o.handler || '');
+  o.isStaff = o.isAmir || o.isAlina || o.isNurd; o.staffName = o.isAmir ? 'Амир' : o.isAlina ? 'Алина' : o.isNurd ? 'Нурдаулет' : '';   // заказ обработал помощник: ему 10% (из моих 35%)
+  o.amirPct = o.isStaff ? (o.amirPct == null ? defHelperPct(o.handler) : o.amirPct) : 0;
   o.amir = o.net * o.amirPct / 100;
   o.mine = o.myShare + (o.isMeDes ? o.desT : 0) + (o.isMeScan ? o.scanHalf : 0);
   o.partner = o.net - o.myShare - o.amir + o.scanHalf + (TIMUR.test(o.scanner || '') ? o.scanHalf : 0);
@@ -1700,7 +1717,7 @@ function calc3d(o) {
   o.ownerMine = o.mine;   // доля Асета (по ней Тимур с ним рассчитывается)
   if (limited && !o.staffView) { o.mine = o.designOnly ? 0 : o.partner; o.designOnly = false; }   // Тимур видит свои деньги
   // у сотрудника денег заказа нет: берём только его зарплату, которую посчитал сервер
-  if (o.staffView) { o.amir = o.salary || 0; o.mine = o.amir; o.myShare = 0; o.partner = 0; o.designOnly = false; o.clientOwes = 0; o.counts = !o.void && o.salary != null; }
+  if (o.staffView) { o.amir = o.salary || 0; o.mine = o.amir; o.myShare = 0; o.partner = 0; o.designOnly = false; if (!MGR()) o.clientOwes = 0; o.counts = !o.void && o.salary != null; }
   return o;
 }
 const p3 = () => orders;
@@ -1800,8 +1817,8 @@ function renderOrders() {
   $('pPrev').disabled = i <= 0; $('pNext').disabled = i >= ms.length - 1;
   $('pName').innerHTML = mLabel(pMonth) + (pMonth === now ? '<small>текущий месяц</small>' : '');
   const unN = prints.filter(p => p.how === 'не разобрано').length;
-  if (role !== 'owner' && (pFilter === 'prints' || pFilter === 'unpaid')) pFilter = 'all';
-  $('pFilter').innerHTML = (role === 'owner' ? FILTERS.concat([['prints', 'Неразобранные печати' + (unN ? ' · ' + unN : '')]]) : FILTERS.filter(f => f[0] !== 'unpaid')).map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
+  if (role !== 'owner' && !MGR() && (pFilter === 'prints' || pFilter === 'unpaid')) pFilter = 'all';
+  $('pFilter').innerHTML = (role === 'owner' || MGR() ? FILTERS.concat([['prints', 'Неразобранные печати' + (unN ? ' · ' + unN : '')]]) : FILTERS.filter(f => f[0] !== 'unpaid')).map(([v, t]) => `<button data-f="${v}" aria-pressed="${v === pFilter}">${t}</button>`).join('');
   $('pFilter').querySelectorAll('button').forEach(b => b.onclick = () => { pFilter = b.dataset.f; renderOrders(); });
   const onPr = pFilter === 'prints';
   $('pSearchRow').hidden = onPr; $('pList').hidden = onPr; $('pTableBox').hidden = onPr;
@@ -1819,8 +1836,9 @@ function renderOrders() {
     ['Выручка заказов', money(revenue) + ' ₸', 'всего по месяцу'],
     ['Пластик', (grams / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸'],
     ...(list.some(o => o.isAmir) ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir && !o.void).length + ' заказов обработал']] : []),
-    ...(list.some(o => o.isAlina) ? [['Зарплата Алины', money(alina3d(list)) + ' ₸', list.filter(o => o.isAlina && !o.void).length + ' заказов обработала']] : [])
-  ].slice(0, role === 'owner' ? 99 : 3).map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
+    ...(list.some(o => o.isAlina) ? [['Зарплата Алины', money(alina3d(list)) + ' ₸', list.filter(o => o.isAlina && !o.void).length + ' заказов обработала']] : []),
+    ...(list.some(o => o.isNurd) ? [['Зарплата Нурдаулета', money(nurd3d(list)) + ' ₸', list.filter(o => o.isNurd && !o.void).length + ' заказов · 30%']] : [])
+  ].filter((x, i) => role === 'owner' || (MGR() ? [0, 1, 2, 4, 5].includes(i) : i < 3)).map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   const q = kidKey($('pSearch').value || '');
   let show = q ? p3().filter(o => kidKey(o.client + ' ' + o.desc + ' ' + o.no).includes(q)) : list;
   show = applyFilter(show);
@@ -1914,10 +1932,10 @@ function ordLine(o) {
   if (o.handed && o.fact) flags.push('передан ' + o.fact.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + (o.late ? ' <span class="flag bad">позже срока</span>' : ''));
   if (o.handed && role === 'owner') flags.push(o.paid ? '<span class="flag ok">рассчитались</span>' : '<span class="flag">' + (limited ? 'ты ещё не рассчитался с Асетом' : 'Тимур ещё не рассчитался') + '</span>');
   return `<button class="ord" data-id="${esc(o.id)}"><div class="h"><span class="no">№${o.no || '—'}</span><span class="cl">${esc(o.client || 'Без имени')}</span></div>
-    <div class="pr num"><b>${role !== 'owner' ? '' : o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts || o.designOnly ? `<span>${role === 'owner' ? 'мне' : 'тебе'} ${money(o.mine)}</span>` : ''}</div>
+    <div class="pr num"><b>${role !== 'owner' && !MGR() ? '' : o.price != null ? money(o.price) + ' ₸' : '—'}</b>${o.counts || o.designOnly ? `<span>${role === 'owner' ? 'мне' : 'тебе'} ${money(o.mine)}</span>` : ''}</div>
     ${o.phone ? `<div class="ph">${esc(fmtPhone(o.phone))} · ${esc(o.client || 'Без имени')}</div>` : ''}
     ${o.desc ? `<div class="ds">${esc(o.desc)}</div>` : ''}
-    ${o.note && !o.staffView ? `<div class="nt">${esc(o.note)}</div>` : ''}
+    ${o.note && (!o.staffView || MGR()) ? `<div class="nt">${esc(o.note)}</div>` : ''}
     ${o.items.length ? (() => { const s = itemsSum(o.items), pc = s.total ? Math.min(100, Math.round(s.done / s.total * 100)) : 0;
       return `<div class="prog"><span>${o.items.length > 1 ? o.items.map(i => esc(i.name) + ' ' + i.done + '/' + i.total).join(' · ') : 'Готово ' + s.done + ' из ' + s.total}${s.done < s.total ? ' · осталось ' + (s.total - s.done) : ' · всё готово ✓'}</span><div class="bar ${s.done >= s.total ? 'full' : ''}"><i style="width:${pc}%"></i></div></div>`; })() : ''}
     <div class="mt"><span class="st ${ST_CLS[o.status] || ''}">${esc(o.status)}</span>${o.date ? '<span>' + o.date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + '</span>' : ''}${flags.map(f => '<span>' + f + '</span>').join('')}</div></button>`;
@@ -1942,12 +1960,14 @@ function renderPStats() {
     ['Заказов', String(list.length), 'средний чек ' + money(list.length ? rev / list.length : 0) + ' ₸'],
     ['Пластик', (sum(list, o => o.grams) / 1000).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + ' кг', money(sum(list, o => o.material)) + ' ₸'],
     ...(list.some(o => o.isAmir) ? [['Зарплата Амира', money(amir3d(list)) + ' ₸', list.filter(o => o.isAmir).length + ' заказов · ' + periodName(ppPeriod, ms)]] : []),
-    ...(list.some(o => o.isAlina) ? [['Зарплата Алины', money(alina3d(list)) + ' ₸', list.filter(o => o.isAlina).length + ' заказов · ' + periodName(ppPeriod, ms)]] : [])
+    ...(list.some(o => o.isAlina) ? [['Зарплата Алины', money(alina3d(list)) + ' ₸', list.filter(o => o.isAlina).length + ' заказов · ' + periodName(ppPeriod, ms)]] : []),
+    ...(!MGR() && list.some(o => o.isNurd) ? [['Зарплата Нурдаулета', money(nurd3d(list)) + ' ₸', list.filter(o => o.isNurd).length + ' заказов · ' + periodName(ppPeriod, ms)]] : [])
   ].map(([l, v, s]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s}</span></div>`).join('');
   barChart($('ppChart'), per, { avg, sel: pMonth, money: true, click: k => { pMonth = k; go('p-orders'); } });
   const parts = [['Мне (доля)', sum(list, o => o.myShare), 'var(--accent)'], ['Мне (дизайн)', sum(p3().filter(o => set.has(o.month) && (o.counts || o.designOnly) && o.isMeDes), o => o.desT), 'var(--accent)'],
-    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Амиру', sum(list.filter(o => o.isAmir), o => o.amir), 'var(--amber)'], ['Алине', sum(list.filter(o => o.isAlina), o => o.amir), 'var(--amber)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
-  if (limited) parts.splice(0, parts.length, ['Мне', sum(list, o => o.mine), 'var(--accent)'], ['Асету', sum(list, o => o.ownerMine), 'var(--bar)'], ['Амиру', sum(list.filter(o => o.isAmir), o => o.amir), 'var(--amber)'], ['Алине', sum(list.filter(o => o.isAlina), o => o.amir), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']);
+    ['Мне (скан)', sum(list.filter(o => o.isMeScan), o => o.scanHalf), 'var(--accent)'], ['Тимуру', sum(list, o => o.partner), 'var(--bar)'], ['Амиру', sum(list.filter(o => o.isAmir), o => o.amir), 'var(--amber)'], ['Алине', sum(list.filter(o => o.isAlina), o => o.amir), 'var(--amber)'], ['Нурдаулету', sum(list.filter(o => o.isNurd), o => o.amir), 'var(--amber)'], ['Сканерам', sum(list.filter(o => o.scan && !o.isMeScan && !TIMUR.test(o.scanner || '')), o => o.scanHalf), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]);
+  if (limited) parts.splice(0, parts.length, ['Мне', sum(list, o => o.mine), 'var(--accent)'], ['Асету', sum(list, o => o.ownerMine), 'var(--bar)'], ['Амиру', sum(list.filter(o => o.isAmir), o => o.amir), 'var(--amber)'], ['Алине', sum(list.filter(o => o.isAlina), o => o.amir), 'var(--amber)'], ['Нурдаулету', sum(list.filter(o => o.isNurd), o => o.amir), 'var(--amber)'], ['Дизайнерам', sum(list.filter(o => !o.isMeDes), o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']);
+  if (MGR()) parts.splice(0, parts.length, ...[['Мне', sum(list, o => o.mine), 'var(--accent)'], ['Дизайн', sum(list, o => o.desT), 'var(--amber)'], ['Пластик', sum(list, o => o.material), 'var(--blue)']].filter(x => x[1]));
   const mx = Math.max(...parts.map(x => Math.abs(x[1])), 1);
   renderProf(list);
   $('ppMix').innerHTML = parts.map(([t, v, c]) => `<div class="hb"><span>${t}</span><b class="num">${money(v)} ₸${rev ? ' · ' + Math.round(v / rev * 100) + '%' : ''}</b><div class="track"><i style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${c}"></i></div></div>`).join('') || '<div class="hint">Нет данных.</div>';
@@ -1965,6 +1985,7 @@ function renderDes() {
   const i = ms.indexOf(dMonth);
   $('dPrev').disabled = i <= 0; $('dNext').disabled = i >= ms.length - 1;
   $('dName').textContent = mLabel(dMonth);
+  if (MGR()) $('dNote').textContent = 'Оплаты дизайнерам по твоим заказам. Дизайн вычитается из цены заказа до расчёта твоей доли.';
   if (!loaded3d) return;
   const group = list => { const g = new Map(); list.filter(o => o.des && o.desT && !o.void).forEach(o => { const k = kidKey(o.des); const x = g.get(k) || { n: o.des, cnt: 0, t: 0, rub: 0, me: o.isMeDes }; x.cnt++; x.t += o.desT; if (o.cur === '₽') x.rub += o.desPay; g.set(k, x); }); return [...g.values()].sort((a, b) => b.t - a.t); };
   const cur = group(p3().filter(o => o.month === dMonth));
@@ -2278,7 +2299,8 @@ function openOrder(id) {
   $('oPre').value = o && o.pre ? o.pre : ''; $('oFull').checked = !!(o && o.fullPaid);
   $('oPlPrice').value = o ? o.plPrice : (last ? last.plPrice : 5);
   $('oHandler').value = role !== 'owner' ? STAFF_NAME[role] : o ? o.staffName : '';
-  $('oShare').value = role !== 'owner' ? 25 : o ? o.share : ($('oHandler').value ? 25 : 35);
+  handlerLabels($('oDate').value.slice(0, 7));
+  $('oShare').value = role !== 'owner' ? defShare($('oDate').value.slice(0, 7), STAFF_NAME[role]) : o ? o.share : defShare($('oDate').value.slice(0, 7), $('oHandler').value);
   $('oDes').value = o ? o.des : '';
   $('oDesPay').value = o && o.desPay ? o.desPay : '';
   ordCur = o && o.desPay ? o.cur : '₽';
@@ -2321,15 +2343,20 @@ function drawOrderForm() {
   const f = formOrder();
   const line = (t, v, cls) => `<span>${t}</span><span class="r ${cls || ''}">${v}</span>`;
   if (role !== 'owner') { $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы увидеть свою зарплату.</span><span></span>' : line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line('Дизайн', '−' + money(f.desT) + ' ₸') : '') + line('Остаток', money(f.net) + ' ₸') + line('Моя зарплата ' + f.amirPct + '%', money(f.amir) + ' ₸', 'tot'); return; }
-  if (limited) { $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы увидеть свою долю.</span><span></span>' : line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line('Дизайн', '−' + money(f.desT) + ' ₸') : '') + line('Остаток', money(f.net) + ' ₸') + line('Доля Асета ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isStaff ? line((f.isAlina ? 'Алине ' : 'Амиру ') + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: мне 50%', money(f.scanHalf) + ' ₸') : '') + (f.fullPaid ? line('Клиент', 'оплатил полностью') : f.pre ? line('Клиент ещё должен', money(Math.max(f.price + f.scan - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.partner) + ' ₸', 'tot'); return; }
+  if (limited) { $('oCalc').innerHTML = f.price == null ? '<span>Укажите цену заказа, чтобы увидеть свою долю.</span><span></span>' : line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line('Дизайн', '−' + money(f.desT) + ' ₸') : '') + line('Остаток', money(f.net) + ' ₸') + line('Доля Асета ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isStaff ? line(DAT[f.staffName] + ' ' + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: мне 50%', money(f.scanHalf) + ' ₸') : '') + (f.fullPaid ? line('Клиент', 'оплатил полностью') : f.pre ? line('Клиент ещё должен', money(Math.max(f.price + f.scan - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.partner) + ' ₸', 'tot'); return; }
   $('oCalc').innerHTML = f.price == null ? (f.designOnly ? line('Дизайн (мне)', money(f.desT) + ' ₸') + line('Мне всего', money(f.mine) + ' ₸', 'tot') + '<span>Цены пока нет: считается только дизайн.</span><span></span>' : '<span>Укажите цену заказа, чтобы посчитать доли.</span><span></span>') :
     line('Пластик', '−' + money(f.material) + ' ₸') + (f.desT ? line(f.isMeDes ? 'Дизайн (мне)' : 'Дизайнеру', '−' + money(f.desT) + ' ₸') : '') +
-    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isStaff ? line((f.isAlina ? 'Алине ' : 'Амиру ') + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
+    line('Остаток', money(f.net) + ' ₸') + line('Моя доля ' + (f.share || 0) + '%', money(f.myShare) + ' ₸') + (f.isStaff ? line(DAT[f.staffName] + ' ' + f.amirPct + '%', money(f.amir) + ' ₸') : '') + (f.scan ? line('Скан: ' + (f.isMeScan ? 'мне' : esc(f.scanner || 'сканировавшему')) + ' 50%', money(f.scanHalf) + ' ₸') : '') + line('Тимуру' + (f.scan ? ' (с половиной скана)' : ''), money(f.partner) + ' ₸') +
     (f.scan ? line('Скан (отдельно)', money(f.scan) + ' ₸') : '') + (f.fullPaid ? line('Клиент', 'оплатил полностью') : f.pre ? line('Клиент ещё должен', money(Math.max(f.price + f.scan - f.pre, 0)) + ' ₸') : '') + line('Мне всего', money(f.mine) + ' ₸', 'tot');
 }
 ['oPrice', 'oPre', 'oPlPrice', 'oShare', 'oDes', 'oDesPay', 'oRate', 'oScan', 'oScanner'].forEach(id => $(id).addEventListener('input', drawOrderForm));
 $('oFull').addEventListener('change', drawOrderForm);
-$('oHandler').addEventListener('change', () => { const v = num($('oShare').value), on = !!$('oHandler').value; if (on && (v === 35 || !$('oShare').value)) $('oShare').value = 25; if (!on && v === 25) $('oShare').value = 35; drawOrderForm(); });
+function handlerLabels(m) {
+  const b = baseShare(m), op = $('oHandler').options;
+  op[0].text = 'Без помощника: моя доля ' + b + '%'; op[1].text = 'Амир: мне ' + (b - 10) + '%, Амиру 10%'; op[2].text = 'Алина: мне ' + (b - 10) + '%, Алине 10%';
+}
+$('oHandler').addEventListener('change', () => { $('oShare').value = defShare($('oDate').value.slice(0, 7), $('oHandler').value); drawOrderForm(); });
+$('oDate').addEventListener('change', () => { handlerLabels($('oDate').value.slice(0, 7)); if (!editing && role === 'owner') { $('oShare').value = defShare($('oDate').value.slice(0, 7), $('oHandler').value); drawOrderForm(); } });
 $('oCur').querySelectorAll('button').forEach(b => b.onclick = () => { ordCur = b.dataset.c; drawOrderForm(); });
 /* состав заказа: виды, сколько нужно и сколько готово */
 function drawItems() {
@@ -2378,7 +2405,7 @@ $('ordForm').addEventListener('submit', async e => {
     'Валюта': $('oDesPay').value.trim() ? ordCur : '', 'Курс ₽→₸': n($('oRate').value), 'Доля Асета, %': n($('oShare').value),
     'Рассчитались': $('oPaid').checked ? (o && o.paid ? o.paid : fmtDate(new Date())) : '', 'Примечание': $('oNote').value.trim(),
     'Источник': o ? (o.src || 'Приложение') : 'Приложение', 'Состав (готово/всего)': itemsText(oItems),
-    'Обработал': $('oHandler').value, 'Доля Амира, %': $('oHandler').value ? String(o && o.isStaff && o.staffName === $('oHandler').value ? o.amirPct : 10).replace('.', ',') : '' };
+    'Обработал': $('oHandler').value, 'Доля Амира, %': $('oHandler').value ? String(o && o.isStaff && o.staffName === $('oHandler').value ? o.amirPct : defHelperPct($('oHandler').value)).replace('.', ',') : '' };
   $('oSave').disabled = true; $('oSave').textContent = 'Сохраняю…';
   try {
     const sr = await saveOrderRow(o || { raw: [] }, patch);
