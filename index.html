@@ -116,10 +116,11 @@ button.cell { text-align: left; font: inherit; color: inherit; cursor: pointer; 
 .dnav { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); white-space: nowrap; }
 .dnav button { width: 30px; height: 30px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; color: var(--fg); font-size: 16px; line-height: 1; }
 .dnav button:disabled { opacity: .35; cursor: default; }
-.dsum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0 6px; }
+.dsum { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .9fr) minmax(0, 1fr); gap: 8px; margin: 12px 0 6px; }
+.dsum b small { font-size: 12px; color: var(--muted); font-weight: 500; }
 .dsum div { background: var(--surface-2); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dsum span { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dsum b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.dsum b { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .dpace { font-size: 13px; color: var(--muted); margin: 2px 0 6px; line-height: 1.4; }
 .dpace b { color: var(--fg); } .dpace .up { color: var(--accent); font-weight: 600; } .dpace .down { color: var(--red); font-weight: 600; }
 .dlist { display: flex; flex-direction: column; margin-top: 6px; border-top: 1px solid var(--line); }
@@ -1202,7 +1203,7 @@ function periodMonths() { return pickMonths(period, monthList(), ranges.coach); 
 function renderStats() {
   periodUI($('period'), period, monthList(), ranges.coach, p => { period = p; renderStats(); playView(); });
   if (!loaded) return;
-  daysCard($('cDays'), 'c', coachDayItems, monthList());
+  daysCard($('cDays'), 'c', coachDayItems, periodMonths());
   const ms = periodMonths(), set = new Set(ms), now = mk(new Date());
   const list = mine().filter(r => set.has(r.month));
   const per = ms.map(m => ({ m, v: sum(list.filter(r => r.month === m), r => r.acc) }));
@@ -1881,45 +1882,56 @@ function dayBuckets(items, m) {
   });
   return by;
 }
-function daysCard(el, id, items, months) {
-  const st = dayState[id] || (dayState[id] = { open: false }), now = mk(new Date());
-  if (!st.m || !months.includes(st.m)) st.m = months.includes(now) ? now : months[months.length - 1];
-  if (!st.m) { el.innerHTML = '<h3>По дням</h3><div class="hint">Нет данных.</div>'; return; }
-  const m = st.m, by = dayBuckets(items(m), m), work = by.filter(b => b.items.length), mi = months.indexOf(m);
+function daysCard(el, id, items, ms) {
+  const st = dayState[id] || (dayState[id] = { open: false }), key = ms.join();
+  if (st.key !== key) { st.key = key; st.sel = null; st.open = false; }
+  if (!ms.length) { el.innerHTML = '<h3>По дням</h3><div class="hint">Нет данных за этот период.</div>'; return; }
+  const today = new Date(), now = mk(today), dk = d => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const tk = dk(today), by = ms.flatMap(m => dayBuckets(items(m), m)), work = by.filter(b => b.items.length);
+  by.forEach(b => b.key = dk(b.date));
   const total = sum(by, b => b.v), best = work.filter(b => !b.items.some(x => x.hist)).reduce((a, b) => (!a || b.v > a.v ? b : a), null);
-  const today = new Date(), isNow = m === now;
-  if (st.sel == null || !by[st.sel - 1] || !by[st.sel - 1].items.length) {
-    const t = isNow && by[today.getDate() - 1] && by[today.getDate() - 1].items.length ? today.getDate() : work.length ? work[work.length - 1].day : null;
-    st.sel = t;
-  }
-  const dLab = b => b.date.getDate() + ' ' + MONTHS_GEN[b.date.getMonth()];
-  // темп: этот месяц к сегодняшнему числу против прошлого месяца к тому же числу
+  const passed = by.filter(b => b.key <= tk).length, one = ms.length === 1;
+  if (st.sel == null || !work.some(b => b.key === st.sel)) st.sel = work.length ? (work.find(b => b.key === tk) || work[work.length - 1]).key : null;
+  const dLab = b => b.date.getDate() + ' ' + MONTHS_GEN[b.date.getMonth()] + (b.date.getFullYear() !== today.getFullYear() ? ' ' + b.date.getFullYear() : '');
+  const title = one ? mLabel(ms[0]) : mLabel(ms[0]) + ' — ' + mLabel(ms[ms.length - 1]);
+  // сравнение: этот месяц — к сегодняшнему числу против прошлого; прошедший месяц — против предыдущего целиком
   let pace = '';
-  if (isNow) {
-    const pm = shiftM(m, -1), pb = dayBuckets(items(pm), pm), dd = today.getDate();
-    const cur = sum(by.slice(0, dd), b => b.v), prev = sum(pb.slice(0, Math.min(dd, pb.length)), b => b.v);
-    const pct = prev > 0 ? Math.round((cur / prev - 1) * 100) : null;
-    pace = `<div class="dpace">К ${dd} ${MONTHS_GEN[today.getMonth()]}: <b>${money(cur)} ₸</b>. В ${MONTHS_PREP(pm)} к ${dd}-му было ${money(prev)} ₸` +
-      (pct == null ? '.' : ` — <span class="${pct >= 0 ? 'up' : 'down'}">${pct >= 0 ? '+' : '−'}${Math.abs(pct)}%</span>.`) + '</div>';
+  if (one) {
+    const m = ms[0], pm = shiftM(m, -1), pb = dayBuckets(items(pm), pm);
+    const pct = (a, b) => b > 0 ? Math.round((a / b - 1) * 100) : null, tag = p => p == null ? '.' : ` — <span class="${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '+' : '−'}${Math.abs(p)}%</span>.`;
+    if (m === now) { const dd = today.getDate(), cur = sum(by.slice(0, dd), b => b.v), prev = sum(pb.slice(0, Math.min(dd, pb.length)), b => b.v);
+      pace = `<div class="dpace">К ${dd} ${MONTHS_GEN[today.getMonth()]}: <b>${money(cur)} ₸</b>. В ${MONTHS_PREP(pm)} к ${dd}-му было ${money(prev)} ₸${tag(pct(cur, prev))}</div>`; }
+    else { const prev = sum(pb, b => b.v); pace = `<div class="dpace">За ${mLabel(m).toLowerCase()}: <b>${money(total)} ₸</b>. В ${MONTHS_PREP(pm)} было ${money(prev)} ₸${tag(pct(total, prev))}</div>`; }
   }
   const kindLine = b => id === 'a' ? [b.c ? 'тренерство ' + money(b.c) : '', b.p ? '3D ' + money(b.p) : ''].filter(Boolean).join(' · ')
     : id === 'c' ? plural(b.items.length, 'запись', 'записи', 'записей') : plural(b.items.length, 'заказ', 'заказа', 'заказов');
   const rowsAll = work.slice().reverse(), lim = st.open ? rowsAll.length : 10;
   const row = b => {
-    const sel = b.day === st.sel;
+    const sel = b.key === st.sel;
     const its = sel ? `<div class="ditems">${b.items.slice().sort((x, y) => y.v - x.v).map(x => `<div><span>${id === 'a' ? `<i>${x.k === 'c' ? 'трен.' : '3D'}</i>` : ''}${esc(x.t)}</span><span>${signed(x.v)} ₸</span></div>`).join('')}</div>` : '';
-    return `<button class="drow${sel ? ' sel' : ''}" data-day="${b.day}"><span class="dd">${WD[b.date.getDay()]}, ${dLab(b)}${best && b.day === best.day && work.length > 1 ? '<span class="tagbest">лучший день</span>' : ''}</span><span class="dv">${signed(b.v)} ₸</span><span class="dm">${kindLine(b)}</span>${its}</button>`;
+    return `<button class="drow${sel ? ' sel' : ''}" data-key="${b.key}"><span class="dd">${WD[b.date.getDay()]}, ${dLab(b)}${best && b.key === best.key && work.length > 1 ? '<span class="tagbest">лучший день</span>' : ''}</span><span class="dv">${signed(b.v)} ₸</span><span class="dm">${kindLine(b)}</span>${its}</button>`;
   };
-  el.innerHTML = `<div class="dhead"><h3>По дням</h3><div class="dnav"><button data-a="-1" aria-label="Предыдущий месяц"${mi <= 0 ? ' disabled' : ''}>‹</button><span>${mLabel(m)}</span><button data-a="1" aria-label="Следующий месяц"${mi >= months.length - 1 ? ' disabled' : ''}>›</button></div></div>
-    <div class="dsum"><div><span>За месяц</span><b>${money(total)} ₸</b></div><div><span>Дней</span><b>${work.length}${isNow ? ' из ' + today.getDate() : ' из ' + by.length}</b></div><div><span>Средний день</span><b>${work.length ? money(total / work.length) : 0} ₸</b></div></div>
+  // столбики: один месяц — каждый день, больше — по неделям (иначе слишком тонкие); список ниже — всегда по дням
+  const weekly = ms.length > 1, shown = by.filter(b => b.key <= tk || one);
+  let bars;
+  if (!weekly) bars = shown.map(b => ({ k: String(b.key), lab: one ? String(b.date.getDate()) : b.date.getDate() + '.' + String(b.date.getMonth() + 1).padStart(2, '0'), v: Math.max(0, b.v) }));
+  else { const wk = new Map(); shown.forEach(b => { const m0 = new Date(b.date); m0.setDate(m0.getDate() - (m0.getDay() + 6) % 7); const k = dk(m0);
+      if (!wk.has(k)) wk.set(k, { k: String(k), lab: m0.getDate() + '.' + String(m0.getMonth() + 1).padStart(2, '0'), v: 0, days: [] });
+      const w = wk.get(k); w.v += Math.max(0, b.v); if (b.items.length) w.days.push(b); });
+    bars = [...wk.values()]; }
+  const selBar = weekly ? (bars.find(w => w.days.some(b => b.key === st.sel)) || {}).k : String(st.sel);
+  el.innerHTML = `<div class="dhead"><h3>По ${weekly ? 'неделям и дням' : 'дням'}</h3><div class="dnav"><span>${title}</span></div></div>
+    <div class="dsum"><div><span>За период</span><b>${money(total)} ₸</b></div><div><span>Дней</span><b>${work.length}<small> / ${passed}</small></b></div><div><span>В среднем</span><b>${work.length ? money(total / work.length) : 0} ₸</b></div></div>
     ${pace}<div class="dchart"></div>
-    <div class="dlist">${rowsAll.slice(0, lim).map(row).join('') || '<div class="hint" style="padding:10px 0">В этом месяце пока ничего.</div>'}</div>
+    <div class="dlist">${rowsAll.slice(0, lim).map(row).join('') || '<div class="hint" style="padding:10px 0">За этот период пока ничего.</div>'}</div>
     ${rowsAll.length > lim ? `<button class="dmore">Показать все дни (${rowsAll.length})</button>` : ''}`;
-  barChart(el.querySelector('.dchart'), by.map(b => ({ k: String(b.day), lab: String(b.day), v: Math.max(0, b.v) })),
-    { money: true, sel: String(st.sel), click: k => { st.sel = +k; if (rowsAll.findIndex(b => b.day === +k) >= 10) st.open = true; daysCard(el, id, items, months); } });
-  el.querySelectorAll('.dnav button').forEach(b => b.onclick = () => { const j = mi + +b.dataset.a; if (months[j]) { st.m = months[j]; st.sel = null; st.open = false; daysCard(el, id, items, months); } });
-  el.querySelectorAll('.drow').forEach(b => b.onclick = () => { st.sel = +b.dataset.day; daysCard(el, id, items, months); });
-  const more = el.querySelector('.dmore'); if (more) more.onclick = () => { st.open = true; daysCard(el, id, items, months); };
+  const redraw = () => daysCard(el, id, items, ms);
+  barChart(el.querySelector('.dchart'), bars, { money: true, sel: selBar, click: k => {
+    if (weekly) { const w = bars.find(x => x.k === k); if (!w || !w.days.length) return; st.sel = w.days.reduce((a, b) => (b.v > a.v ? b : a)).key; }
+    else { if (!work.some(b => b.key === +k)) return; st.sel = +k; }
+    if (rowsAll.findIndex(b => b.key === st.sel) >= 10) st.open = true; redraw(); } });
+  el.querySelectorAll('.drow').forEach(b => b.onclick = () => { st.sel = +b.dataset.key; redraw(); });
+  const more = el.querySelector('.dmore'); if (more) more.onclick = () => { st.open = true; redraw(); };
 }
 const plural = (n, a, b, c) => n + ' ' + (n % 10 === 1 && n % 100 !== 11 ? a : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? b : c);
 const MONTHS_PREP = k => ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'][+k.slice(5) - 1];
@@ -1943,8 +1955,8 @@ function renderAllStats() {
     ['Лучший месяц', bestM && tot(bestM) ? money(tot(bestM)) + ' ₸' : '—', bestM && tot(bestM) ? mLabel(bestM.k) : ''],
     ['Лучший день', bestD ? money(bestD.v) + ' ₸' : '—', bestD ? WD[bestD.date.getDay()] + ', ' + dLab(bestD) : '']
   ].map(([l, v, s2]) => `<div class="cell"><span class="label">${l}</span><span class="v num">${v}</span><span class="s">${s2}</span></div>`).join('');
-  daysCard($('aDays'), 'a', allDayItems, allMonths());
-  stacked($('asChart'), per, ms.includes(now) ? now : ms[ms.length - 1], k => { aMonth = k; go('all'); });
+  daysCard($('aDays'), 'a', allDayItems, ms);
+  stacked($('asChart'), per, ms[ms.length - 1], k => { aMonth = k; go('all'); });
   const parts = [['Тренерство', ca, 'var(--accent)'], ['3D-печать', cb, 'var(--blue)']];
   $('asMix').innerHTML = parts.map(([n, v, c]) => `<div class="hb"><span>${n}</span><b class="num">${money(v)} ₸ · ${total > 0 ? Math.round(v / total * 100) : 0}%</b><div class="track"><i style="width:${total > 0 ? Math.max(0, v / total * 100).toFixed(1) : 0}%;background:${c}"></i></div></div>`).join('');
   const wd = [1, 2, 3, 4, 5, 6, 0].map(w => { const l = days.filter(b => b.date.getDay() === w); return { w, v: l.length ? sum(l, b => b.v) / l.length : 0, n: l.length }; });
@@ -2127,9 +2139,9 @@ $('pSearch').addEventListener('input', renderOrders);
 /* ---------- 3D: СТАТИСТИКА ---------- */
 function renderPStats() {
   periodUI($('ppPeriod'), ppPeriod, months3d(), ranges.print, p => { ppPeriod = p; renderPStats(); playView(); });
-  if (loaded3d) daysCard($('pDays'), 'p', printDayItems, months3d());
   if (!loaded3d) return;
   const ms = pickMonths(ppPeriod, months3d(), ranges.print);
+  daysCard($('pDays'), 'p', printDayItems, ms);
   const set = new Set(ms), list = p3().filter(o => set.has(o.month) && o.counts), now = mk(new Date());
   const per = ms.map(m => ({ k: m, v: mine3d(p3().filter(o => o.month === m)), lab: MSHORT[+m.slice(5) - 1] }));
   const full = per.filter(p => p.k !== now && p.v);
