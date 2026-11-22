@@ -597,7 +597,11 @@ td.mine { color: var(--accent); font-weight: 600; }
 }
 
 .pr-card { gap: 10px; }
-.pr-row { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; }
+*, *::before, *::after { touch-action: manipulation; }   /* быстрые нажатия на «+» не приближают экран */
+@media (max-width: 999px) { input, select, textarea { font-size: max(16px, 1em) !important; } }   /* iPhone не приближает поле при вводе */
+.pr-row { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; transition: opacity .25s; }
+.pr-row.pr-busy, .op.pr-busy { opacity: .55; }
+.pr-row.pr-out, .op.pr-out { opacity: 0; }
 .pr-row + .pr-row { border-top: 1px solid var(--line); }
 .pr-h { display: flex; justify-content: space-between; gap: 10px; }
 .pr-h span { font-family: var(--f-display); font-weight: 600; white-space: nowrap; }
@@ -2320,9 +2324,53 @@ function pager(id, afterId, total, page, size, onPage, onSize) {
 let prDPage = 0;
 let prPage = 0, prSize = 10; try { const z = Number(store.get('prSize')); if ([10, 25, 50].includes(z)) prSize = z; } catch (e) {}
 const prTs = p => { const m = String(p.start || '').match(/(\d{2})\.(\d{2})\.(\d{4})\s+(\d{1,2}):(\d{2})/) || String(p.end || '').match(/(\d{2})\.(\d{2})()\s+(\d{1,2}):(\d{2})/); return m ? new Date(+(m[3] || new Date().getFullYear()), +m[2] - 1, +m[1], +m[4], +m[5]).getTime() : 0; };
+/* Очередь действий с печатями: «Удалить», «Привязать» можно нажимать подряд на разных печатях.
+   Каждая строка сразу помечается, всё выполняется по порядку, список обновляется один раз в конце. */
+const prJobs = [], prBusy = new Map(), prGone = new Set();
+let prRunning = false;
+const prSel = id => `[data-pid="${CSS.escape(id)}"]`;
+function prMark(id) {
+  const st = prBusy.get(id); if (!st) return;
+  const row = document.querySelector('#prList .pr-row' + prSel(id));
+  if (row) { row.classList.add('pr-busy'); row.querySelectorAll('button, select, input').forEach(x => x.disabled = true);
+    const b = row.querySelector(st.kind === 'del' ? '.pr-del' : 'button:not(.pr-del)'); if (b) b.textContent = st.text; }
+  const u = document.querySelector('#prLog .pr-undo' + prSel(id));
+  if (u) { u.disabled = true; u.textContent = st.text; const op = u.closest('.op'); if (op) op.classList.add('pr-busy'); }
+}
+function prQueue(p, kind, run) {
+  if (!p || prBusy.has(p.id)) return;
+  prBusy.set(p.id, { kind, text: prRunning || prJobs.length ? 'В очереди…' : kind === 'assign' ? 'Привязываю…' : 'Удаляю…' });
+  prJobs.push({ p, kind, run }); prMark(p.id); prWork();
+}
+async function prWork() {
+  if (prRunning) return; prRunning = true;
+  let done = 0, failed = 0;
+  while (prJobs.length) {
+    const j = prJobs[0];
+    prBusy.set(j.p.id, { kind: j.kind, text: j.kind === 'assign' ? 'Привязываю…' : 'Удаляю…' }); prMark(j.p.id);
+    $('status').textContent = 'Выполняю' + (prJobs.length > 1 ? ' · ещё в очереди: ' + (prJobs.length - 1) : '…');
+    try {
+      await j.run(); done++; prGone.add(j.p.id);
+      document.querySelectorAll(prSel(j.p.id)).forEach(el => { const box = el.closest('.pr-row, .op') || el; box.classList.add('pr-out'); setTimeout(() => box.remove(), 260); });
+    } catch (e) {
+      failed++; showWriteError(e);
+      document.querySelectorAll(prSel(j.p.id)).forEach(el => { const box = el.closest('.pr-row, .op') || el; box.classList.remove('pr-busy');
+        box.querySelectorAll('button, select, input').forEach(x => x.disabled = false);
+        const b = box.querySelector('.pr-del'); if (b) b.textContent = 'Удалить'; const a = box.querySelector('.pr-a button:not(.pr-del)'); if (a) a.textContent = 'Привязать';
+        if (box.matches('.pr-undo')) box.textContent = 'Удалить'; const u = box.querySelector('.pr-undo'); if (u) { u.disabled = false; u.textContent = 'Удалить'; } });
+    }
+    prJobs.shift(); prBusy.delete(j.p.id);
+  }
+  try { await refreshNow(); } catch (e) {}
+  prRunning = false;
+  if (!prJobs.length) { prGone.clear(); renderPrints(); }
+  $('status').textContent = done ? 'Готово, печатей: ' + done + (failed ? ' · не получилось: ' + failed : '') : failed ? 'Не получилось: ' + failed : '';
+  if (prJobs.length) prWork();
+}
+
 function renderPrints() {
-  const un = prints.filter(p => p.how === 'не разобрано').sort((a, b) => (prTs(b) - prTs(a)) || (b.row - a.row));   // новые сверху
-  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено' && p.how !== 'удалено').reverse().sort((a, b) => prTs(b) - prTs(a));   // новые сверху
+  const un = prints.filter(p => p.how === 'не разобрано' && !prGone.has(p.id)).sort((a, b) => (prTs(b) - prTs(a)) || (b.row - a.row));   // новые сверху
+  const doneList = prints.filter(p => p.how !== 'не разобрано' && p.how !== 'пропущено' && p.how !== 'удалено' && !prGone.has(p.id)).reverse().sort((a, b) => prTs(b) - prTs(a));   // новые сверху
   const ordName = p => { const o = p.order && p3().find(x => x.id === p.order); if (!o) return ''; const t = ((o.client ? o.client + ' — ' : '') + (o.desc || '').split('\n')[0]).replace(/\s+/g, ' ').trim(); return t.length > 34 ? t.slice(0, 33).trimEnd() + '…' : t; };
   const tot = sum(doneList.filter(p => p.no), p => p.grams);
   $('prDoneT').textContent = 'Уже привязано' + (doneList.length ? ' · ' + doneList.length : '');
@@ -2336,11 +2384,10 @@ function renderPrints() {
     b.onclick = async () => {
       const p = prints.find(x => x.id === b.dataset.pid);
       if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = p && p.no ? 'Точно? −' + money(p.grams) + ' г из заказа' : 'Точно удалить?'; setTimeout(() => { delete b.dataset.sure; if (!b.disabled) b.textContent = 'Удалить'; }, 4000); return; }
-      b.disabled = true; b.textContent = 'Удаляю…';
-      try { await deletePrint(p); await refreshNow(); $('status').textContent = 'Печать удалена из учёта'; }
-      catch (e) { b.disabled = false; b.textContent = 'Удалить'; showWriteError(e); }
+      prQueue(p, 'undo', () => deletePrint(p));
     };
   });
+  prBusy.forEach((v, id) => prMark(id));
   $('prDone').hidden = pFilter !== 'prints';
   const onPr = pFilter === 'prints';
   $('prInfo').hidden = !onPr; $('prBox').hidden = !onPr;
@@ -2364,17 +2411,15 @@ function renderPrints() {
     del.onclick = async () => {
       const p = prints.find(x => x.id === el.dataset.pid);
       if (!del.dataset.sure) { del.dataset.sure = '1'; del.textContent = 'Точно удалить?'; setTimeout(() => { delete del.dataset.sure; if (!del.disabled) del.textContent = 'Удалить'; }, 4000); return; }
-      del.disabled = btn.disabled = true; del.textContent = 'Удаляю…';
-      try { await assignPrint(p, '-', false); await refreshNow(); $('status').textContent = 'Печать удалена из списка'; }
-      catch (e) { del.disabled = btn.disabled = false; del.textContent = 'Удалить'; showWriteError(e); }
+      prQueue(p, 'del', () => assignPrint(p, '-', false));
     };
-    btn.onclick = async () => {
+    btn.onclick = () => {
       if (!sel.value) { sel.focus(); return; }
-      btn.disabled = true; btn.textContent = 'Записываю…';
-      try { await assignPrint(prints.find(x => x.id === el.dataset.pid), sel.value, rem.checked); await refreshNow(); $('status').textContent = 'Печать привязана'; }
-      catch (e) { btn.disabled = false; btn.textContent = 'Привязать'; showWriteError(e); }
+      const p = prints.find(x => x.id === el.dataset.pid), oid = sel.value, r = rem.checked;
+      prQueue(p, sel.value === '-' ? 'del' : 'assign', () => assignPrint(p, oid, r));
     };
   });
+  prBusy.forEach((v, id) => prMark(id));
 }
 async function assignPrint(p, orderId, remember) {
   if (!p) throw { code: 'moved', message: 'Печать не нашлась — нажмите «Обновить».' };
@@ -2388,6 +2433,7 @@ async function assignPrint(p, orderId, remember) {
   const o = p3().find(x => x.id === orderId); if (!o) throw { code: 'moved', message: 'Заказ не нашёлся — нажмите «Обновить».' };
   const parts = [...o.parts, p.grams].map(x => String(x).replace('.', ',')).join('+');
   await saveOrderRow(o, { 'Пластик, г (части через +)': parts });
+  o.parts = [...o.parts, p.grams]; o.grams = o.parts.reduce((a, x) => a + x, 0);
   await mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!I${p.row}:K${p.row}`, values: [[o.id, "'" + o.no, 'вручную']] });
   if (remember && prKey(p.name)) await mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'Псевдонимы печати'!A1", values: [[prKey(p.name), o.id, new Date().toLocaleString('ru-RU')]] });
 }
@@ -2399,7 +2445,7 @@ async function deletePrint(p) {
   const o = p.order && p3().find(x => x.id === p.order);
   if (o && p.grams > 0) {
     const parts = o.parts.slice(); let k = -1; parts.forEach((x, i) => { if (Math.abs(Number(x) - p.grams) < 0.05) k = i; });
-    if (k >= 0) { parts.splice(k, 1); await saveOrderRow(o, { 'Пластик, г (части через +)': parts.map(x => String(x).replace('.', ',')).join('+') }); }
+    if (k >= 0) { parts.splice(k, 1); await saveOrderRow(o, { 'Пластик, г (части через +)': parts.map(x => String(x).replace('.', ',')).join('+') }); o.parts = parts; o.grams = parts.reduce((a, x) => a + x, 0); }
   }
   return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!I${p.row}:K${p.row}`, values: [['', '', 'удалено']] });
 }
