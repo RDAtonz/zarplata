@@ -1006,7 +1006,8 @@ body.role-staff #navPrint .owner-tab, body.role-timur #navPrint .owner-tab { dis
 
 <script>
 const SHEET_ID = '1B68sIA2xlK9v95zkupvEP8iahwqMCWFFJqG8pA0tZTo';
-const API_URL = 'https://script.google.com/macros/s/AKfycbzmjShQMZKGDjF_XWcvEA80tWXthpz98OFBBW_1HPpsfcLNzjaLtiMCiIn34nwx4FC5ow/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzmjShQMZKGDjF_XWcvEA80tWXthpz98OFBBW_1HPpsfcLNzjaLtiMCiIn34nwx4FC5ow/exec';   // тренерство (старая таблица)
+const API3D_URL = 'https://script.google.com/macros/s/AKfycbzZ0o3wrFxu0kd8qo-CfTKAUqZxCLjJoJZB-SFjKAEwdypnOmaK51VqtuYcUksJNSuP/exec';   // 3D-печать: новая система Tillo 3D (тот же ключ владельца)
 const APP_TITLE = document.title || 'Моя зарплата'; // ссылка на веб-приложение Google (для версии на GitHub)
 let src = null; // 'mcp' — внутри Claude, 'api' — на GitHub с ключом
 const SERVER = 'Google Sheets';
@@ -1474,16 +1475,18 @@ async function appendRow(row) {
 async function apiLoad() {
   const key = store.get('appKey');
   if (!key) { askKey(); return; }
-  let res = null;
-  try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json()); }
+  let res = null, res3 = null;
+  const post = u => fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ key, action: 'rows' }) }).then(r => r.json());
+  try { [res, res3] = await Promise.all([post(API_URL), post(API3D_URL).catch(() => null)]); }
   catch (e) { onError({ code: 'server_unavailable' }); return; }
   if (!res.ok) { if (res.error === 'bad_key') { store.set('appKey', null); store.set('role', null); role = 'owner'; limited = false; applyRole(); askKey('Неверный ключ'); } else onError({ code: 'tool_error', message: res.error }); return; }
   if (res.role === 'nurdaulet') { store.set('appKey', null); askKey('Этот ключ для сайта «3D-заказы»'); return; }
   const lim = res.role === 'timur'; if (lim !== limited) { limited = lim; try { store.set('role', lim ? 'timur' : null); } catch (e) {} applyRole(); }
   const r0 = STAFF_NAME[res.role] ? res.role : 'owner'; if (r0 !== role) { role = r0; try { store.set('role', r0 === 'owner' ? null : r0); } catch (e) {} applyRole(); }
   setLocked(false);
-  if (res.values3d) { loaded3d = true; ingest3d(res.values3d); }
-  if (res.valuesPrints) ingestPrints(res.valuesPrints);
+  if (res3 && res3.ok && res3.values3d) { loaded3d = true; ingest3d(res3.values3d); if (res3.valuesPrints) ingestPrints(res3.valuesPrints); }
+  else if (res3 && res3.error) onError({ code: 'tool_error', message: '3D-печать: ' + res3.error });
+  else onError({ code: 'server_unavailable' });
   onData({ payload: { values: res.values } });
 }
 function setLocked(on) { document.body.classList.toggle('locked', on); document.title = on ? 'Вход' : APP_TITLE; }
@@ -2450,7 +2453,7 @@ async function deletePrint(p) {
   return mcp.callTool(SERVER, 'update_values', { spreadsheetId: SHEET_ID, range: `'Журнал печатей'!I${p.row}:K${p.row}`, values: [['', '', 'удалено']] });
 }
 async function apiPost(body) {
-  const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ key: store.get('appKey') }, body)) }).then(r => r.json()).catch(() => null);
+  const res = await fetch(API3D_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ key: store.get('appKey') }, body)) }).then(r => r.json()).catch(() => null);
   if (!res) throw { code: 'server_unavailable' };
   if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error === 'already' ? 'Эту печать уже разобрали.' : res.error };
   return res;
@@ -2546,7 +2549,7 @@ async function saveOrderRow(o, patch) {
     }
     return mcp.callTool(SERVER, 'append_values', { spreadsheetId: SHEET_ID, range: "'3D-заказы'!A1", values: [row] });
   }
-  const res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+  const res = await fetch(API3D_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({ key: store.get('appKey'), action: 'save3d', row }) }).then(r => r.json()).catch(() => null);
   if (!res) throw { code: 'server_unavailable' };
   if (!res.ok) throw { code: res.error === 'bad_key' ? 'bad_key' : 'tool_error', message: res.error === 'forbidden' ? 'это не ваш заказ' : res.error === 'bad_row' ? 'проверьте цифры и даты' : res.error };
@@ -2571,7 +2574,7 @@ function openOrder(id) {
   $('oDesc').value = o ? o.desc : '';
   $('oPrice').value = o && o.price != null ? o.price : '';
   $('oPre').value = o && o.pre ? o.pre : ''; $('oFull').checked = !!(o && o.fullPaid);
-  $('oPlPrice').value = o ? o.plPrice : (last ? last.plPrice : 5);
+  $('oPlPrice').value = o ? o.plPrice : 4;   // новые заказы: 4 ₸/г (старые не меняются)
   $('oHandler').value = role !== 'owner' ? STAFF_NAME[role] : o ? o.staffName : '';
   handlerLabels($('oDate').value.slice(0, 7));
   $('oShare').value = role !== 'owner' ? defShare($('oDate').value.slice(0, 7), STAFF_NAME[role]) : o ? o.share : defShare($('oDate').value.slice(0, 7), $('oHandler').value);
