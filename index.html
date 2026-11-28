@@ -233,6 +233,12 @@ tr:last-child td { border-bottom: 0; }
   padding: 18px max(18px, env(safe-area-inset-left, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-right, 0px));
   display: flex; flex-direction: column; gap: 12px; max-height: 90%; overflow: auto; }
 .sheet h2 { margin: 0; font-size: 18px; }
+.sheet-bg { overflow: hidden; overscroll-behavior: contain; }
+.sheet { overflow-x: hidden; overscroll-behavior-x: none; touch-action: pan-y; }
+.sheet > *, .sheet .row2 > * { min-width: 0; max-width: 100%; }
+.sheet input, .sheet select, .sheet textarea { min-width: 0; max-width: 100%; }
+.item .full-btn { height: 34px; padding: 0 10px; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; cursor: pointer; font: inherit; font-size: 13px; color: var(--fg); white-space: nowrap; }
+.item .full-btn[disabled] { opacity: .45; cursor: default; }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field label { font-size: 13px; color: var(--muted); }
 .field input, .field select { font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; }
@@ -2705,6 +2711,7 @@ function drawItems() {
     const left = Math.max(it.total - it.done, 0), pc = it.total ? Math.min(100, Math.round(it.done / it.total * 100)) : 0;
     return `<div class="item" data-i="${i}"><span class="nm">${esc(it.name)}</span>
       <span class="ctl"><button type="button" data-d="-1" aria-label="Минус один">−</button><input inputmode="numeric" value="${it.done}" aria-label="Готово"><button type="button" data-d="1" aria-label="Плюс один">+</button><span class="of">из ${it.total}</span><button type="button" class="rm" data-rm="1" aria-label="Убрать вид">×</button></span>
+      <span class="fullrow" style="grid-column:1/-1"><button type="button" class="full-btn" data-full="1" ${it.done >= it.total ? 'disabled' : ''}>✓ Вид собран полностью</button></span>
       <div class="bar ${it.done >= it.total ? 'full' : ''}"><i style="width:${pc}%"></i></div>
       <span class="left">${it.done >= it.total ? 'Готово ✓' + (it.done > it.total ? ' (с запасом ' + (it.done - it.total) + ')' : '') : 'Осталось: ' + left}</span></div>`;
   }).join('') + (oItems.length > 1 ? (() => { const s = itemsSum(oItems); return `<div class="status" style="text-align:left">Всего: готово ${s.done} из ${s.total}, осталось ${Math.max(s.total - s.done, 0)}</div>`; })() : '');
@@ -2712,6 +2719,7 @@ function drawItems() {
     const i = +el.dataset.i, it = oItems[i];
     el.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { it.done = Math.max(0, it.done + +b.dataset.d); drawItems(); });
     el.querySelector('[data-rm]').onclick = () => { oItems.splice(i, 1); drawItems(); };
+    el.querySelector('[data-full]').onclick = () => { it.done = Math.max(it.done, it.total); drawItems(); };
     el.querySelector('input').onchange = e => { it.done = Math.max(0, Math.floor(num(e.target.value)) || 0); drawItems(); };
   });
 }
