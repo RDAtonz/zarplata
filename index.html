@@ -1068,7 +1068,7 @@ function ingest(values) {
   const head = values[0].map(h => String(h).trim());
   const ix = n => head.indexOf(n);
   const I = { id: ix('ID'), date: ix('Дата'), month: ix('Месяц'), work: ix('Работа'), type: ix('Тип'), kids: ix('Дети'),
-    desc: ix('Описание'), acc: ix('Начислено'), rec: ix('Получено'), src: ix('Источник') };
+    desc: ix('Описание'), acc: ix('Начислено'), rec: ix('Получено'), src: ix('Источник'), rcpt: ix('Квитанция') };
   const g = (r, k) => I[k] >= 0 ? (r[I[k]] ?? '') : '';
   opsHead = head;
   rows = values.slice(1).map((r, i) => {
@@ -1078,7 +1078,7 @@ function ingest(values) {
     const type = String(g(r, 'type')).trim();
     return { id: String(g(r, 'id')), date: d, month: m, work: String(g(r, 'work')).trim() || 'Работа 1', type, c: cat(type),
       kids: String(g(r, 'kids')).trim(), desc: String(g(r, 'desc')).trim(), acc: num(g(r, 'acc')), rec: num(g(r, 'rec')),
-      src: String(g(r, 'src')).trim(), row: i + 2, raw: r };
+      src: String(g(r, 'src')).trim(), rcpt: String(g(r, 'rcpt')).replace(/^'/, '').trim(), row: i + 2, raw: r };
   }).filter(r => r.month && (r.type || r.acc || r.rec));
   works = [...new Set(rows.map(r => r.work))];
   if (!work || !works.includes(work)) work = works[0] || null;
@@ -1178,7 +1178,7 @@ function renderFeed(cur) {
       const desc = r.desc && r.desc !== who ? r.desc : '';
       html += `<div class="op" data-op="${esc(r.id)}"><div class="who">${esc(who.length > 160 ? who.slice(0, 160) + '…' : who)}</div>
         <div class="amt num ${main < 0 ? 'neg' : ''} ${isRec ? 'rec' : ''}">${main ? (isRec ? '↓ ' + money(main) : signed(main)) + ' ₸' : ''}</div>
-        <div class="meta"><span class="pill c-${r.c}">${CAT_LABEL[r.c]}</span>${desc ? `<span class="desc">${esc(desc.length > 140 ? desc.slice(0, 140) + '…' : desc)}</span>` : ''}</div></div>`;
+        <div class="meta"><span class="pill c-${r.c}">${CAT_LABEL[r.c]}</span>${r.rcpt ? '<span class="pill" style="background:rgba(46,160,67,.18);color:#2ea043">🧾 чек</span>' : ''}${desc ? `<span class="desc">${esc(desc.length > 140 ? desc.slice(0, 140) + '…' : desc)}</span>` : ''}</div></div>`;
     });
     html += '</div></div>';
   });
